@@ -1,0 +1,202 @@
+/* EditBirthday.css */
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Jersey-25', 'Arial Narrow', sans-serif;
+    background-color: whitesmoke;
+    background-image: 
+      linear-gradient(to bottom, 
+        #000435 0%,
+        #00264D 15%,
+        #4f0894 30%,
+        #a332d5 45%, 
+        #dd4ac1 60%,
+        #f63fa6 75%,
+        #f9547a 85%,
+        #ff6857 90%,
+        #f98c53 95%,
+        #fef4b5 100%
+      ),
+      linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 
+      100% 100%,
+      20px 20px,
+      20px 20px;
+    background-attachment: fixed;
+  }
+  
+  /* Panel container */
+  .edit-birthday-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    margin: auto;
+    width: 600px;
+  }
+  
+  /* Main panel with pixel border */
+  .edit-birthday-panel {
+    width: 100%;
+    max-width: 600px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 4px solid #1a1a2e;
+    box-shadow: 
+      8px 0 0 #010102,
+      -8px 0 0 #010102,
+      0 8px 0 #010102,
+      0 -8px 0 #010102;
+    padding: 20px 25px;
+    border-radius: 8px;
+    margin-bottom: 50px;
+  }
+  
+  /* Header adjustments */
+  .edit-birthday-panel h2 {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    color: #fef4b5;
+    font-size: 2rem;
+    padding-bottom: 5px;
+    border-bottom: 2px solid rgba(254, 244, 181, 0.3);
+  }
+  
+  /* Form styles */
+  .birthday-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-right: 15px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-group label {
+    color: #fef4b5;
+    font-size: 24px;
+  }
+
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 10px 12px;
+    border: 2px solid #1a1a2e;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-family: 'Jersey-25', 'Arial Narrow', sans-serif;
+    font-size: 20px;
+    width: calc(100% - 24px);
+  }
+  
+  .form-group select {
+    width: 100%;
+  }
+  
+  .form-group textarea {
+    min-height: 100px;
+    font-size: 20px;
+    resize: vertical;
+  }
+  
+  /* Button styles */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 2px solid rgba(254, 244, 181, 0.3);
+  }
+  
+  .submit-button {
+    background-color: #000435;
+    font-family: 'Jersey', 'Arial Narrow', sans-serif;
+    font-size: 24px;
+    color: white;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #fef4b5;
+  }
+  
+  .submit-button:hover {
+    background-color: #00264D;
+    transform: translateY(-2px);
+  }
+  
+  .cancel-button {
+    font-family: 'Jersey', 'Arial Narrow', sans-serif;
+    font-size: 24px;
+    background-color: transparent;
+    color: #fef4b5;
+    border: 2px solid #fef4b5;
+    padding: 8px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .cancel-button:hover {
+    background-color: rgba(254, 244, 181, 0.1);
+  }
+
+  /* Image Upload Styles */
+.image-upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .image-preview {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 2px solid #1a1a2e;
+  }
+  
+  .file-input {
+    display: none;
+  }
+  
+  .file-upload-button {
+    background-color: #000435;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Jersey', 'Arial Narrow', sans-serif;
+    font-size: 20px;
+    border: 2px solid #fef4b5;
+    transition: all 0.3s ease;
+  }
+  
+  .file-upload-button:hover {
+    background-color: #00264D;
+  }
+  
+  /* Zodiac Select Styles */
+  .zodiac-select {
+    padding: 10px 12px;
+    border: 2px solid #1a1a2e;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-family: 'Jersey', 'Arial Narrow', sans-serif;
+    width: 100%;
+    font-size: 20px;
+  }
+  
+  .zodiac-select option {
+    font-family: 'Jersey', 'Arial Narrow', sans-serif;
+    font-size: 18px;
+  }
