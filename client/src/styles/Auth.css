@@ -1,0 +1,100 @@
+
+/* Auth Container */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1; /* Takes remaining space */
+  margin-top: 0px;/* Reduce top padding since header is separate */
+  min-height: calc(100vh - 80px); /* Adjust based on header height */
+  padding: 10px 20px 20px; /* Reduced top padding */
+}
+
+/* Auth Panel */
+.auth-panel {
+  background-color: rgba(195, 76, 140, 0.3);
+  border: 4px solid #1a1a2e;
+  box-shadow: 8px 0 0 #010102, -8px 0 0 #010102, 0 8px 0 #010102,
+    0 -8px 0 #010102;
+  padding: 25px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.signin-panel {
+  padding: 25px;
+  min-height: 400px; /* Fixed height for sign in */
+  margin-top: -125px;
+}
+
+/* Sign Up Specific Styles */
+.signup-panel {
+  padding: 25px;
+  min-height: 500px; /* Slightly taller for extra fields */
+}
+
+.auth-panel h2 {
+  font-family: "Jersey", "Arial Narrow", sans-serif;
+  font-size: 2.8rem;
+  color: white;
+  margin-bottom: 25px;
+  margin-top: 15px;
+}
+
+/* Error Message */
+.auth-error {
+  color: #ff6857;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+/* Submit Button */
+.auth-submit {
+  width: 50%;
+  margin-top: 20px;
+  font-size: 1.5rem;
+  padding: 12px;
+}
+
+/* Switch Link */
+.auth-switch {
+  margin-top: 25px;
+  color: #fef4b5;
+  font-size: 1.2rem;
+}
+
+.auth-switch a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #fef4b5;
+  font-size: 1.5rem;
+}
+
+.form-group input {
+  width: 95%;
+  padding: 12px;
+  border: 2px solid #1a1a2e;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.8);
+  font-family: inherit;
+  font-size: 1.1rem;
+  margin-right: 20px;
+}

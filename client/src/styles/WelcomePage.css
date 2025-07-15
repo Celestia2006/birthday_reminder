@@ -1,0 +1,395 @@
+.welcome-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: 
+    linear-gradient(to bottom, 
+      #000435 0%,
+      #00264D 15%,
+      #4f0894 30%,
+      #a332d5 45%, 
+      #dd4ac1 60%,
+      #f63fa6 75%,
+      #f9547a 85%,
+      #ff6857 90%,
+      #f98c53 95%,
+      #fef4b5 100%
+    ),
+    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 
+    100% 100%,
+    20px 20px,
+    20px 20px;
+  background-attachment: fixed;
+  color: #fef4b5;
+  font-family: 'Jersey', sans-serif;
+  text-align: center;
+  position: relative;
+  z-index: 1; /* Ensure content is above background */
+}
+
+.stars-background { /* Add this if your StarsBackground has this class */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Below content (z-index:1) but above background */
+  pointer-events: none;
+}
+
+.header{
+  margin-bottom: 10px;
+}
+
+.welcome-content {
+  margin-top: 5vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.welcome-content h1 {
+  font-size: 3rem;
+  text-shadow: 3px 3px 0 #a332d5;
+  margin-bottom: 0.5rem;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.welcome-content p {
+  font-size: 1.8rem;
+  margin-top: 0;
+}
+
+.instruction {
+  opacity: 0.8;
+  font-size: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Gift Button Container */
+.gift-button-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 2rem auto;
+}
+
+/* Gift Image Styles */
+.gift-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 10px rgba(254, 244, 181, 0.5));
+  z-index: 1;
+  position: relative;
+  margin-top: 10px;
+}
+
+.gift-image:hover:not(.opened) {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 15px rgba(254, 244, 181, 0.8));
+}
+
+.gift-image.opened {
+  animation: quick-explode 0.4s ease-out forwards;
+}
+
+@keyframes quick-explode {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+@keyframes giftOpen {
+  0% { transform: scale(1); }
+  20% { transform: scale(1.2) rotate(-5deg); }
+  40% { transform: scale(0.9) rotate(5deg); }
+  60% { transform: scale(1.1) rotate(-3deg); }
+  80% { transform: scale(0.95) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+}
+
+/* Sparkles Styles */
+.gift-sparkles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sparkle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #fef4b5;
+  border-radius: 50%;
+  animation: sparkle-pop 1.5s ease-out forwards;
+  opacity: 0;
+  transform: translate(0, 0);
+  width: var(--size);
+  height: var(--size);
+}
+
+@keyframes sparkle-pop {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Add these styles to your existing CSS */
+.gift-image.opened {
+  animation: giftExplode 0.5s ease-out forwards;
+}
+
+@keyframes giftExplode {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.confetti-piece {
+  position: fixed;
+  will-change: transform, opacity;
+  transition: transform 0.1s linear, opacity 0.1s linear;
+}
+
+/* Decoration Container */
+.decoration-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Base Decoration Style */
+.decoration {
+  position: absolute;
+  filter: drop-shadow(0 2px 8px whitesmoke); /* Lighter shadow */
+  opacity: 0.9;
+  transition: all 0.5s ease;
+  pointer-events: auto; /* Add this to enable hover */
+}
+
+/* Individual Positions - Updated as requested */
+.moon-star {
+  top: 30px;
+  left: 30px;
+  width: 110px; /* Increased size */
+  margin-left: 40px;
+  animation: quick-pop 1.5s ease-in-out infinite;
+}
+
+@keyframes quick-pop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.ribbon {
+  bottom: 30px;
+  left: 30px;
+  width: 140px; /* Increased size */
+  margin-left: 40px;
+  filter: drop-shadow(0 2px 8px whitesmoke); /* Lighter shadow */
+  animation: 
+    ribbon-wave 3s ease-in-out infinite,
+    ribbon-color-shift 4s ease-in-out infinite;
+}
+
+@keyframes ribbon-wave {
+  0%, 100% { transform: rotate(-5deg) scale(1); }
+  25% { transform: rotate(5deg) scale(1.05); }
+  50% { transform: rotate(-8deg) scale(1.03); }
+  75% { transform: rotate(8deg) scale(1.07); }
+}
+
+@keyframes ribbon-color-shift {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(254, 244, 181, 0.7)) hue-rotate(0deg); }
+  50% { filter: drop-shadow(0 0 12px rgba(254, 244, 181, 0.9)) hue-rotate(20deg); }
+}
+
+.heart1{
+  bottom: 30px;
+  left: 400px;
+  width: 100px; /* Increased size */
+  animation: quick-beat 1.2s ease-in-out infinite;
+}
+
+.heart2{
+  bottom: 30px;
+  right: 400px;
+  width: 100px; /* Increased size */
+  animation: quick-beat 1.2s ease-in-out infinite;
+}
+
+@keyframes quick-beat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.rainbow {
+  top: 10px;
+  right : 75px;
+  width: 140px; /* Increased size */
+  margin-left: 40px;
+  animation: quick-bounce 2s ease-in-out infinite;
+}
+
+@keyframes quick-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.hat {
+  bottom: 30px;
+  right: 30px;
+  width: 110px; /* Increased size */
+  transform: rotate(15deg);
+  margin-right: 40px;
+  animation:  
+    hat-tilt 2s ease-in-out infinite,
+    hat-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes hat-tilt {
+  0%, 100% { transform: rotate(-15deg) translateY(0); }
+  50% { transform: rotate(25deg) translateY(-10px); }
+}
+
+@keyframes hat-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.balloon {
+  top: 300px;
+  right: 30px;
+  width: 100px; /* Increased size */
+  margin-right: 40px;
+  animation: quick-float 2.2s ease-in-out infinite;
+}
+
+@keyframes quick-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.cupcake {
+  top: 300px;
+  left: 50px;
+  width: 100px; /* Increased size */
+  margin-right: 40px;
+  animation: quick-bounce 1.7s ease-in-out infinite;
+}
+
+.cake {
+  top: 0px;
+  width: 120px;
+  right: calc(50% + 200px); 
+  animation: 
+  wish-float 3s ease-in-out infinite,
+  wish-pulse 2s ease-in-out infinite;
+}
+
+
+.wish{
+  top: 200px;
+  width: 140px;
+  left: calc(50% + 200px); /* Positions to the right of gift */
+  animation: 
+  wish-float 3s ease-in-out infinite,
+  wish-pulse 2s ease-in-out infinite;
+}
+
+@keyframes wish-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes wish-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.balloons {
+  /*width: 140px;
+  left: calc(50% + 200px); /* Positions to the right of gift */
+  /*animation: float-side 4s ease-in-out infinite;*/
+  top: 60px;
+  left: -425px;
+  width: 150px; /* Increased size */
+  animation: quick-float 2s ease-in-out infinite;
+}
+
+/* Hover Effects */
+.decoration:hover {
+  transform: scale(1.1); /* More subtle enlargement */
+  filter: drop-shadow(0 2px 8px whitesmoke);
+  transition: all 0.2s ease; /* Faster transition */
+  opacity: 1;
+}
+
+
+/* Optional Sparkle Effect on Hover */
+.decoration:hover::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle at center, 
+    rgba(254, 244, 181, 0.6) 0%,  /* Lighter */
+    transparent 70%);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: sparkle 0.8s ease-out;
+}
+
+@keyframes sparkle {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+/* Gift Surroundings Container */
+.gift-surroundings {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+/* Side Decoration Styles */
+.side-decoration {
+  position: absolute;
+  filter: drop-shadow(0 2px 8px whitesmoke); /* Lighter shadow */
+  opacity: 0.9;
+  transition: all 0.5s ease;
+  z-index: 2;
+  pointer-events: auto; /* Add this to enable hover */
+}
+
+/* Hover Effects for Side Decorations */
+.side-decoration:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 12px rgba(254, 244, 181, 0.9));
+}

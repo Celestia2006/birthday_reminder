@@ -1,0 +1,137 @@
+.birthday-detail-container {
+  max-width: 700px;
+  margin: 15px auto;
+  padding: 20px 20px 100px; /* Extra padding at bottom for buttons */
+  box-shadow: 0 2px 10px #454545;
+  border-radius: 20px;
+  position: relative;
+  background: transparent; /* Clear background to see shadow */
+  margin-bottom: 30px;
+  padding-right: 20px;
+  
+}
+
+.birthday-detail-card {
+  background: #f7ebe0;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  margin: 10px 10px 10px 10px;
+  margin-right: 10px;
+}
+
+.detail-header {
+  text-align: center;
+  padding: 30px 30px 0;
+  width: 100%;
+}
+
+.detail-header h2 {
+  margin: 0;
+  color: #703D57;
+  font-size: 2.2rem;
+}
+
+.nickname {
+  margin: 5px 0 20px;
+  color: #8a6d8b;
+  font-style: italic;
+  font-size: 1.4rem;
+}
+
+.detail-image-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  background: #ef7e9c;
+  /*border-radius: 20px 20px 20px 20px; /* Rounded bottom corners */
+}
+
+.detail-image {
+  width: 300px;
+  height: 380px;
+  object-fit: cover;
+  border-radius: 50% / 40%;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #fcd6e5;
+}
+
+.vertical-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 30px;
+}
+
+.detail-section {
+  margin-bottom: 20px;
+}
+
+.detail-section h3 {
+  margin: 0 0 8px 0;
+  color: #6B4C7F;
+  font-size: 1.4rem;
+}
+
+.detail-section p {
+  margin: 0;
+  color: #5a5a5a;
+  line-height: 1.5;
+}
+
+/* Buttons outside card but within shadow */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  position: absolute;
+  bottom: 30px; /* Position at bottom of container */
+  left: 0;
+}
+
+.styled-button {
+  background-color: #000435;
+  font-family: 'Jersey', 'Arial Narrow', sans-serif;
+  font-size: 28px;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #fef4b5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Button shadow */
+}
+
+.styled-button:hover {
+  background-color: #001a66;
+  transform: translateY(-2px);
+}
+
+.styled-button:active {
+  transform: translateY(0);
+}
+
+.delete-button {
+  background-color: #c81610;
+}
+
+.delete-button:hover {
+  background-color: #b30903;
+}
+
+@media (min-width: 768px) {
+  .birthday-detail-card {
+    width: 600px;
+  }
+}
+
+.notes-gap{
+  margin-bottom: 30px;
+}

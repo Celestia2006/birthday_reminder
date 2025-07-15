@@ -1,0 +1,60 @@
+.stars-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  background: #FFEEA0; 
+  border-radius: 50%;
+  will-change: transform;
+  
+  
+  box-shadow: 
+    0 0 var(--glow) rgba(255, 238, 160, 0.8),
+    0 0 var(--glow) white,
+    0 0 calc(var(--glow) * 1.5) rgba(255, 215, 100, 0.6),
+    0 0 calc(var(--glow) * 2) rgba(255, 200, 50, 0.3);
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--opacity);
+    transform: translateY(0) translateX(0);
+  }
+  90% {
+    opacity: var(--opacity);
+  }
+  100% {
+    transform: translateY(calc(-100vh - var(--size))) translateX(15px);
+    opacity: 0;
+  }
+}
+
+.star:nth-child(4n) {
+  background: #FFF5C2;
+  box-shadow: 
+    0 0 calc(var(--glow) * 1.2) rgba(255, 245, 194, 0.9),
+    0 0 calc(var(--glow) * 2) rgba(255, 230, 120, 0.7);
+}
+
+.star:nth-child(3n) {
+  animation: floatUp linear infinite, pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
