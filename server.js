@@ -37,7 +37,8 @@ const upload = multer({
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+//app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 // PostgreSQL connection pool
 const pool = new Pool({
@@ -184,8 +185,8 @@ app.post(
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        console.log("BODY:", req.body);
-
+        console.log("Request body:", req.body);
+        console.log("Phone number:", req.body.phone_number);
 
         const {
           rows: [newBirthday],

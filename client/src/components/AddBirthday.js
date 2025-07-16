@@ -102,12 +102,14 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
       return;
     }
 
-    // Create FormData for file upload
+    // Create FormData
     const formData = new FormData();
+
+    // Append all fields individually
     formData.append("name", nameInput.current.value);
     formData.append("birth_date", dateInput.current.value);
-    formData.append("nickname", nicknameInput.current?.value || "");
     formData.append("phone_number", phoneNumberInput.current.value);
+    formData.append("nickname", nicknameInput.current?.value || "");
     formData.append(
       "relationship",
       relationshipInput.current.value || "Friend"
@@ -119,7 +121,7 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     formData.append("gift_ideas", giftsInput.current?.value || "");
     formData.append("notes", notesInput.current?.value || "");
 
-    // Append the file if selected
+    // Append file last
     if (fileInput.current?.files[0]) {
       formData.append("photo", fileInput.current.files[0]);
     }
