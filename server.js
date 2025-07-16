@@ -48,7 +48,7 @@ const pool = new Pool({
 // Verify database connection
 async function testConnection() {
   try {
-    const connection = await pool.Connect();
+    const connection = await pool.connect();
     console.log("Successfully connected to the database");
     connection.release();
   } catch (err) {
