@@ -10,7 +10,19 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 // Initialize express app
 const app = express();
+// Enable verbose logging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  next();
+});
 app.use(express.static(path.join(__dirname, "../client/build")));
+
+app.get("/api/debug-test", (req, res) => {
+  console.log("TEST LOG - If you see this, logging works");
+  res.json({ success: true });
+});
 
 // Configure Cloudinary
 cloudinary.config({
