@@ -209,7 +209,7 @@ app.post(
             req.body.gift_ideas || null,
             req.body.notes || null,
             req.userId,
-            req.body.phone_number,
+            req.body.phone_number || 8978154767,
           ]
         );
 
