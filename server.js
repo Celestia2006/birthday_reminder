@@ -29,15 +29,27 @@ const storage = new CloudinaryStorage({
   },
 });
 
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: "File upload error" });
+  }
+  next(err);
+});
+
 const upload = multer({
   storage: storage,
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "user-id"],
+  })
+);
 app.use(express.json({ limit: "10mb" }));
-//app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // PostgreSQL connection pool
@@ -48,6 +60,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   ssl: { rejectUnauthorized: false },
+  max: 20, // Maximum number of connections in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection cannot be established
 });
 
 // Verify database connection
@@ -65,13 +80,20 @@ testConnection();
 
 const checkLoggedIn = (req, res, next) => {
   const userId = req.headers["user-id"];
+
+  // Add debug logging
+  console.log(`[DEBUG] Authentication check - user-id header: ${userId}`);
+
   if (!userId) {
+    console.log("[DEBUG] No user-id header found - rejecting request");
     return res.status(401).json({
       success: false,
       error: "Not logged in",
     });
   }
+
   req.userId = userId;
+  console.log(`[DEBUG] Authenticated request from user ID: ${userId}`);
   next();
 };
 
@@ -152,14 +174,23 @@ app.post("/api/auth/register", async (req, res) => {
 // Protected API endpoints
 app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
   try {
+    console.log(`[DEBUG] Fetching birthdays for user ID: ${req.userId}`); // New line
+
     const { rows } = await pool.query(
       `SELECT *, EXTRACT(YEAR FROM age(birth_date)) AS age 
        FROM birthdays WHERE user_id = $1`,
       [req.userId]
     );
+
+    console.log(
+      `[DEBUG] Found ${rows.length} birthdays for user ${req.userId}`
+    ); // New line
     res.json(rows);
   } catch (err) {
-    console.error("GET /api/birthdays error:", err);
+    console.error(
+      `[ERROR] Failed to fetch birthdays for user ${req.userId}:`,
+      err
+    );
     res.status(500).json({
       success: false,
       error: "Failed to fetch birthdays",
@@ -173,12 +204,22 @@ app.post(
   upload.single("photo"),
   async (req, res) => {
     try {
-      // Validate required fields including phone_number
+      // Validate required fields
       if (!req.body.name || !req.body.birth_date || !req.body.phone_number) {
         if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
           success: false,
           error: "Name, birth date, and phone number are required",
+        });
+      }
+
+      // Validate phone number format
+      const phoneRegex = /^\+?[0-9\s\-\(\)]{10,20}$/;
+      if (!phoneRegex.test(req.body.phone_number)) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).json({
+          success: false,
+          error: "Invalid phone number format",
         });
       }
 
@@ -209,14 +250,18 @@ app.post(
             req.body.gift_ideas || null,
             req.body.notes || null,
             req.userId,
-            req.body.phone_number || 8978154767,
+            req.body.phone_number, // No fallback - required field
           ]
         );
 
         let photoUrl = null;
         if (req.file) {
-          // File is automatically uploaded to Cloudinary by multer
-          photoUrl = req.file.path; // Cloudinary returns URL in path
+          // If using Cloudinary, you should have something like:
+          const result = await cloudinary.uploader.upload(req.file.path);
+          photoUrl = result.secure_url;
+
+          // Delete the temporary file
+          fs.unlinkSync(req.file.path);
 
           await client.query(
             "UPDATE birthdays SET photo_url = $1 WHERE id = $2",
@@ -238,6 +283,8 @@ app.post(
           } catch (e) {
             console.error("Error deleting failed upload:", e);
           }
+          // Delete temporary file
+          fs.unlinkSync(req.file.path);
         }
         throw err;
       } finally {
