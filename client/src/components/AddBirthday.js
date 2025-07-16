@@ -44,6 +44,8 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
   const giftsInput = useRef();
   const notesInput = useRef();
   const fileInput = useRef();
+  const phoneNumberInput = useRef();
+
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -90,8 +92,12 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     setError("");
 
     // Basic validation
-    if (!nameInput.current.value || !dateInput.current.value) {
-      setError("Name and birth date are required!");
+    if (
+      !nameInput.current.value ||
+      !dateInput.current.value ||
+      !phoneNumberInput.current.value
+    ) {
+      setError("Name, birth date, and phone number are required!");
       setIsSubmitting(false);
       return;
     }
@@ -101,6 +107,7 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     formData.append("name", nameInput.current.value);
     formData.append("birth_date", dateInput.current.value);
     formData.append("nickname", nicknameInput.current?.value || "");
+    formData.append("phone_number", phoneNumberInput.current.value);
     formData.append(
       "relationship",
       relationshipInput.current.value || "Friend"
@@ -152,6 +159,18 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
                 id="nickname"
                 name="nickname"
                 ref={nicknameInput}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="phone">Phone Number* (for notifications)</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                required
+                ref={phoneNumberInput}
+                placeholder="+1234567890"
+                pattern="^\+?[0-9\s\-\(\)]{10,20}$"
               />
             </div>
           </div>

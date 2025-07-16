@@ -6,28 +6,33 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
+
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 // Initialize express app
 const app = express();
 app.use(express.static(path.join(__dirname, "../client/build")));
 
 // Configure file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../client/public/images/upload");
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Temporary name - will be renamed after getting the ID
-    cb(null, file.originalname);
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "birthday-reminder",
+    allowed_formats: ["jpg", "jpeg", "png", "gif"],
+    transformation: [{ width: 800, height: 800, crop: "limit" }],
   },
 });
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
-});
 
+
+const upload = multer({ storage });
 
 
 // Middleware
@@ -204,7 +209,7 @@ app.post(
         });
       }
 
-      const connection = await pool.getConnection();
+      const connection = await pool.connect();
       await connection.beginTransaction();
 
       try {
@@ -231,9 +236,9 @@ app.post(
         console.log("New record created with ID:", newId); // Debug log
 
         let photoUrl = null;
+        // In the POST /api/birthdays endpoint:
         if (req.file) {
           console.log("Processing file upload for ID:", newId); // Debug log
-
           const fileExt = path.extname(req.file.originalname).toLowerCase();
           const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
@@ -243,24 +248,19 @@ app.post(
             );
           }
 
-          const newFilename = `${newId}${fileExt}`;
-          const oldPath = req.file.path;
-          const uploadDir = path.join(
-            __dirname,
-            "../client/public/images/upload"
-          );
-          const newPath = path.join(uploadDir, newFilename);
+          // Upload to Cloudinary
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            public_id: `birthday-${newId}`,
+            folder: "birthday-reminder",
+            overwrite: true,
+          });
 
-          // Ensure upload directory exists
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
+          photoUrl = result.secure_url;
 
-          console.log(`Renaming ${oldPath} to ${newPath}`); // Debug log
-          fs.renameSync(oldPath, newPath);
-          photoUrl = `/images/upload/${newFilename}`;
+          // Delete the temporary file
+          fs.unlinkSync(req.file.path);
 
-          console.log("Updating record with photo URL:", photoUrl); // Debug log
+          console.log("Updating record with photo URL:", photoUrl);
           await connection.query(
             "UPDATE birthdays SET photo_url = ? WHERE id = ?",
             [photoUrl, newId]
@@ -311,7 +311,7 @@ app.put(
       const { id } = req.params;
       console.log("Edit request for ID:", id, "with file:", req.file);
 
-      const connection = await pool.getConnection();
+      const connection = await pool.connect();
       await connection.beginTransaction();
 
       try {
@@ -330,36 +330,27 @@ app.put(
 
         let photoUrl = existing[0].photo_url;
         if (req.file) {
-          // Delete old photo if exists
+          // Delete old photo from Cloudinary if exists
           if (photoUrl) {
-            const oldPath = path.join(__dirname, "../client/public", photoUrl);
-            if (fs.existsSync(oldPath)) {
-              fs.unlinkSync(oldPath);
+            try {
+              const publicId = photoUrl.split("/").pop().split(".")[0];
+              await cloudinary.uploader.destroy(publicId);
+            } catch (err) {
+              console.error("Error deleting old image from Cloudinary:", err);
             }
           }
 
-          // Process new photo
-          const fileExt = path.extname(req.file.originalname).toLowerCase();
-          const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
+          // Upload new photo to Cloudinary
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            public_id: `birthday-${id}`,
+            folder: "birthday-reminder",
+            overwrite: true,
+          });
 
-          if (!allowedExtensions.includes(fileExt)) {
-            throw new Error("Invalid file type. Only images are allowed.");
-          }
+          photoUrl = result.secure_url;
 
-          const newFilename = `${id}${fileExt}`;
-          const oldPath = req.file.path;
-          const uploadDir = path.join(
-            __dirname,
-            "../client/public/images/upload"
-          );
-          const newPath = path.join(uploadDir, newFilename);
-
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-
-          fs.renameSync(oldPath, newPath);
-          photoUrl = `/images/upload/${newFilename}`;
+          // Delete the temporary file
+          fs.unlinkSync(req.file.path);
         }
 
         const updateData = {
@@ -427,13 +418,11 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
     }
 
     if (existing[0].photo_url) {
-      const photoPath = path.join(
-        __dirname,
-        "../client/public",
-        existing[0].photo_url
-      );
-      if (fs.existsSync(photoPath)) {
-        fs.unlinkSync(photoPath);
+      try {
+        const publicId = existing[0].photo_url.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error("Error deleting image from Cloudinary:", err);
       }
     }
 
