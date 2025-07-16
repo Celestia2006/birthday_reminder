@@ -1,14 +1,16 @@
 require("dotenv").config();
 const express = require("express");
-const mysql = require("mysql2/promise");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
-
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// Initialize express app
+const app = express();
+app.use(express.static(path.join(__dirname, "../client/build")));
 
 // Configure Cloudinary
 cloudinary.config({
@@ -16,11 +18,8 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-// Initialize express app
-const app = express();
-app.use(express.static(path.join(__dirname, "../client/build")));
 
-// Configure file storage
+// Configure file storage with Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -30,51 +29,47 @@ const storage = new CloudinaryStorage({
   },
 });
 
-
-
-const upload = multer({ storage });
-
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Database connection pool
+// PostgreSQL connection pool
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
-  ssl: { rejectUnauthorized: false }, // Required for Render
+  ssl: { rejectUnauthorized: false },
 });
 
 // Verify database connection
 async function testConnection() {
   try {
-    const connection = await pool.connect();
-    console.log("Successfully connected to the database");
-    connection.release();
+    const client = await pool.connect();
+    console.log("✅ Database connected successfully");
+    client.release();
   } catch (err) {
-    console.error("Database connection failed:", err);
+    console.error("❌ Database connection failed:", err);
     process.exit(1);
   }
 }
 testConnection();
 
 const checkLoggedIn = (req, res, next) => {
-  console.log("Incoming request headers:", req.headers); // Debug log
   const userId = req.headers["user-id"];
-
   if (!userId) {
-    console.log("No user-id header found"); // Debug log
     return res.status(401).json({
       success: false,
       error: "Not logged in",
     });
   }
-
   req.userId = userId;
   next();
 };
@@ -83,15 +78,12 @@ const checkLoggedIn = (req, res, next) => {
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log("Login attempt:", username, password);
-
-    const [users] = await pool.query(
-      "SELECT id, username FROM users WHERE username = ? AND password = ?",
+    const { rows } = await pool.query(
+      "SELECT id, username FROM users WHERE username = $1 AND password = $2",
       [username, password]
     );
 
-    if (users.length === 0) {
-      console.log("No matching user found");
+    if (rows.length === 0) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -100,8 +92,8 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.json({
       success: true,
-      userId: users[0].id,
-      username: users[0].username,
+      userId: rows[0].id,
+      username: rows[0].username,
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -123,8 +115,8 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    const [existing] = await pool.query(
-      "SELECT * FROM users WHERE username = ? OR email = ?",
+    const { rows: existing } = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
       [username, email]
     );
 
@@ -135,14 +127,16 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    const [result] = await pool.query(
-      "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
+    const {
+      rows: [user],
+    } = await pool.query(
+      "INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id",
       [username, password, email]
     );
 
     res.status(201).json({
       success: true,
-      userId: result.insertId,
+      userId: user.id,
       username,
     });
   } catch (err) {
@@ -157,8 +151,9 @@ app.post("/api/auth/register", async (req, res) => {
 // Protected API endpoints
 app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT *, YEAR(CURDATE()) - YEAR(birth_date) AS age FROM birthdays WHERE user_id = ?",
+    const { rows } = await pool.query(
+      `SELECT *, EXTRACT(YEAR FROM age(birth_date)) AS age 
+       FROM birthdays WHERE user_id = $1`,
       [req.userId]
     );
     res.json(rows);
@@ -177,7 +172,7 @@ app.post(
   upload.single("photo"),
   async (req, res) => {
     try {
-      // Validate required fields
+      // Validate required fields including phone_number
       if (!req.body.name || !req.body.birth_date || !req.body.phone_number) {
         if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
@@ -211,19 +206,14 @@ app.post(
             req.body.gift_ideas || null,
             req.body.notes || null,
             req.userId,
-            req.body.phone_number, // Required field
+            req.body.phone_number,
           ]
         );
 
         let photoUrl = null;
         if (req.file) {
-          // Cloudinary upload logic here
-          const result = await cloudinary.uploader.upload(req.file.path, {
-            public_id: `birthday-${newBirthday.id}`,
-            folder: "birthday-reminder",
-          });
-          photoUrl = result.secure_url;
-          fs.unlinkSync(req.file.path);
+          // File is automatically uploaded to Cloudinary by multer
+          photoUrl = req.file.path; // Cloudinary returns URL in path
 
           await client.query(
             "UPDATE birthdays SET photo_url = $1 WHERE id = $2",
@@ -238,7 +228,14 @@ app.post(
         });
       } catch (err) {
         await client.query("ROLLBACK");
-        if (req.file) fs.unlinkSync(req.file.path);
+        if (req.file) {
+          // Delete from Cloudinary if upload failed
+          try {
+            await cloudinary.uploader.destroy(req.file.filename);
+          } catch (e) {
+            console.error("Error deleting failed upload:", e);
+          }
+        }
         throw err;
       } finally {
         client.release();
@@ -266,7 +263,7 @@ app.put(
       try {
         await client.query("BEGIN");
 
-        // Check if record exists
+        // 1. Check if record exists
         const {
           rows: [existing],
         } = await client.query(
@@ -275,32 +272,37 @@ app.put(
         );
 
         if (!existing) {
-          if (req.file) fs.unlinkSync(req.file.path);
+          if (req.file) {
+            try {
+              await cloudinary.uploader.destroy(req.file.filename);
+            } catch (e) {
+              console.error("Error deleting failed upload:", e);
+            }
+          }
           return res.status(404).json({
             success: false,
             error: "Birthday not found",
           });
         }
 
-        // Handle photo update
+        // 2. Handle photo update if new file uploaded
         let photoUrl = existing.photo_url;
         if (req.file) {
           // Delete old photo from Cloudinary if exists
           if (photoUrl) {
-            const publicId = photoUrl.split("/").pop().split(".")[0];
-            await cloudinary.uploader.destroy(publicId);
+            try {
+              const publicId = photoUrl.split("/").pop().split(".")[0];
+              await cloudinary.uploader.destroy(publicId);
+            } catch (err) {
+              console.error("Error deleting old image:", err);
+            }
           }
 
-          // Upload new photo
-          const result = await cloudinary.uploader.upload(req.file.path, {
-            public_id: `birthday-${id}`,
-            folder: "birthday-reminder",
-          });
-          photoUrl = result.secure_url;
-          fs.unlinkSync(req.file.path);
+          // New photo is automatically uploaded to Cloudinary
+          photoUrl = req.file.path;
         }
 
-        // Update record
+        // 3. Update record
         const {
           rows: [updated],
         } = await client.query(
@@ -331,7 +333,7 @@ app.put(
             req.body.gift_ideas || null,
             req.body.notes || null,
             photoUrl || null,
-            req.body.phone_number || existing.phone_number, // Ensure phone_number is never null
+            req.body.phone_number || existing.phone_number,
             id,
           ]
         );
@@ -343,7 +345,13 @@ app.put(
         });
       } catch (err) {
         await client.query("ROLLBACK");
-        if (req.file) fs.unlinkSync(req.file.path);
+        if (req.file) {
+          try {
+            await cloudinary.uploader.destroy(req.file.filename);
+          } catch (e) {
+            console.error("Error deleting failed upload:", e);
+          }
+        }
         throw err;
       } finally {
         client.release();
@@ -362,30 +370,47 @@ app.put(
 app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
   try {
     const { id } = req.params;
+    const client = await pool.connect();
 
-    const [existing] = await pool.query(
-      "SELECT * FROM birthdays WHERE id = ? AND user_id = ?",
-      [id, req.userId]
-    );
+    try {
+      await client.query("BEGIN");
 
-    if (existing.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Birthday not found",
-      });
-    }
+      // 1. Check if record exists and get photo info
+      const {
+        rows: [existing],
+      } = await client.query(
+        "SELECT photo_url FROM birthdays WHERE id = $1 AND user_id = $2",
+        [id, req.userId]
+      );
 
-    if (existing[0].photo_url) {
-      try {
-        const publicId = existing[0].photo_url.split("/").pop().split(".")[0];
-        await cloudinary.uploader.destroy(publicId);
-      } catch (err) {
-        console.error("Error deleting image from Cloudinary:", err);
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          error: "Birthday not found",
+        });
       }
-    }
 
-    await pool.query("DELETE FROM birthdays WHERE id = ?", [id]);
-    res.status(204).end();
+      // 2. Delete photo from Cloudinary if exists
+      if (existing.photo_url) {
+        try {
+          const publicId = existing.photo_url.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error("Error deleting image from Cloudinary:", err);
+        }
+      }
+
+      // 3. Delete record
+      await client.query("DELETE FROM birthdays WHERE id = $1", [id]);
+      await client.query("COMMIT");
+
+      res.status(204).end();
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error("DELETE /api/birthdays error:", err);
     res.status(500).json({
@@ -395,28 +420,14 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
   }
 });
 
-app.get("/api/user", checkLoggedIn, async (req, res) => {
-  try {
-    const [users] = await pool.query(
-      "SELECT id, username, email FROM users WHERE id = ?",
-      [req.userId]
-    );
+// Serve React app
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
+});
 
-    if (users.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
-    }
-
-    res.json(users[0]);
-  } catch (err) {
-    console.error("User profile error:", err);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch user profile",
-    });
-  }
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Error handling middleware
@@ -427,41 +438,4 @@ app.use((err, req, res, next) => {
     error: "Server error",
     message: err.message,
   });
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`); // Should NOT say 5432
-});
-
-
-app.get("/api/card/:id", checkLoggedIn, async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM birthdays WHERE id = ? AND user_id = ?",
-      [req.params.id, req.userId]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Card not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      data: rows[0],
-    });
-  } catch (err) {
-    console.error("GET /api/card error:", err);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch card",
-    });
-  }
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 });
