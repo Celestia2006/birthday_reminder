@@ -37,7 +37,14 @@ app.use((err, req, res, next) => {
 });
 
 const upload = multer({
-  storage: storage,
+  storage: new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: "birthday-reminder",
+      format: "jpg",
+      public_id: (req, file) => `birthday-${Date.now()}-${req.userId}`,
+    },
+  }),
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
@@ -96,6 +103,21 @@ const checkLoggedIn = (req, res, next) => {
   console.log(`[DEBUG] Authenticated request from user ID: ${userId}`);
   next();
 };
+
+// Add this route temporarily:
+app.get('/api/cloudinary-test', async (req, res) => {
+  try {
+    const result = await cloudinary.uploader.upload(
+      "https://res.cloudinary.com/demo/image/upload/sample.jpghttps://res.cloudinary.com/dffrevtpk/image/upload/v1752667653/main-sample.png",
+      {
+        folder: "birthday-reminder",
+      }
+    );
+    res.json({ success: true, url: result.secure_url });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
 
 // Auth Endpoints
 app.post("/api/auth/login", async (req, res) => {
@@ -213,8 +235,11 @@ app.post(
         });
       }
 
+
+      console.log("Raw request body:", req.body);
       // 2. Simple 10-digit phone validation
-      const phoneDigits = req.body.phone_number.replace(/\D/g, "");
+      const phoneDigits = String(req.body.phone_number).replace(/\D/g, "");
+      console.log("Processed phone:", phoneDigits);
       if (phoneDigits.length !== 10) {
         if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
@@ -227,9 +252,10 @@ app.post(
       // 3. Process Cloudinary upload if photo exists
       let photoUrl = null;
       if (req.file) {
+        console.log("File received:", req.file);
         const result = await cloudinary.uploader.upload(req.file.path);
-        photoUrl = result.secure_url;
-        fs.unlinkSync(req.file.path); // Remove temp file
+        console.log("Cloudinary response:", result);
+        photoUrl = result.secure_url; // Override local path
       }
 
       console.log("File upload result:", {
@@ -241,7 +267,8 @@ app.post(
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-
+        console.log("Multer storage type:", upload.storage.constructor.name);
+        // Should log "CloudinaryStorage"
         const {
           rows: [newBirthday],
         } = await client.query(
