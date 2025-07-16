@@ -204,7 +204,7 @@ app.post(
   upload.single("photo"),
   async (req, res) => {
     try {
-      // Validate required fields
+      // 1. Validate required fields
       if (!req.body.name || !req.body.birth_date || !req.body.phone_number) {
         if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
@@ -213,61 +213,56 @@ app.post(
         });
       }
 
-      // Validate phone number format
-      const phoneRegex = /^\+?[0-9\s\-\(\)]{10,20}$/;
-      if (!phoneRegex.test(req.body.phone_number)) {
+      // 2. Simple 10-digit phone validation
+      const phoneDigits = req.body.phone_number.replace(/\D/g, "");
+      if (phoneDigits.length !== 10) {
         if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
           success: false,
-          error: "Invalid phone number format",
+          error: "Phone number must be 10 digits",
+          example: "1234567890",
         });
       }
 
+      // 3. Process Cloudinary upload if photo exists
+      let photoUrl = null;
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        photoUrl = result.secure_url;
+        fs.unlinkSync(req.file.path); // Remove temp file
+      }
+
+      // 4. Insert into database
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        console.log("Request body:", req.body);
-        console.log("Phone number:", req.body.phone_number);
 
         const {
           rows: [newBirthday],
         } = await client.query(
           `INSERT INTO birthdays (
-            name, nickname, birth_date, relationship, 
-            zodiac, personalized_message, favorite_color,
-            hobbies, gift_ideas, notes, user_id, phone_number
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            name, nickname, phone_number, birth_date,
+            relationship, zodiac, photo_url,
+            personalized_message, favorite_color,
+            hobbies, gift_ideas, notes, user_id
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
           RETURNING *`,
           [
             req.body.name.substring(0, 100),
             req.body.nickname?.substring(0, 100) || null,
+            phoneDigits, // Store only the 10 digits
             req.body.birth_date,
             req.body.relationship?.substring(0, 50) || "Friend",
             req.body.zodiac?.substring(0, 20) || null,
+            photoUrl,
             req.body.personalized_message || null,
             req.body.favorite_color?.substring(0, 50) || null,
             req.body.hobbies || null,
             req.body.gift_ideas || null,
             req.body.notes || null,
             req.userId,
-            req.body.phone_number, // No fallback - required field
           ]
         );
-
-        let photoUrl = null;
-        if (req.file) {
-          // If using Cloudinary, you should have something like:
-          const result = await cloudinary.uploader.upload(req.file.path);
-          photoUrl = result.secure_url;
-
-          // Delete the temporary file
-          fs.unlinkSync(req.file.path);
-
-          await client.query(
-            "UPDATE birthdays SET photo_url = $1 WHERE id = $2",
-            [photoUrl, newBirthday.id]
-          );
-        }
 
         await client.query("COMMIT");
         res.status(201).json({
@@ -276,26 +271,20 @@ app.post(
         });
       } catch (err) {
         await client.query("ROLLBACK");
-        if (req.file) {
-          // Delete from Cloudinary if upload failed
-          try {
-            await cloudinary.uploader.destroy(req.file.filename);
-          } catch (e) {
-            console.error("Error deleting failed upload:", e);
-          }
-          // Delete temporary file
-          fs.unlinkSync(req.file.path);
+        if (photoUrl) {
+          await cloudinary.uploader.destroy(
+            photoUrl.split("/").pop().split(".")[0]
+          );
         }
         throw err;
       } finally {
         client.release();
       }
     } catch (err) {
-      console.error("Server error:", err);
+      console.error("Error creating birthday:", err);
       res.status(500).json({
         success: false,
-        error: "Server error",
-        message: err.message,
+        error: "Failed to create birthday record",
       });
     }
   }
