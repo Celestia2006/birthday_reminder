@@ -176,123 +176,75 @@ app.post(
   checkLoggedIn,
   upload.single("photo"),
   async (req, res) => {
-    console.log("File upload received:", req.file); // Debug log
-    console.log("Request body:", req.body); // Debug log
-
     try {
       // Validate required fields
-      if (!req.body.name || !req.body.birth_date) {
-        if (req.file) {
-          console.log("Deleting invalid file:", req.file.path);
-          fs.unlinkSync(req.file.path);
-        }
+      if (!req.body.name || !req.body.birth_date || !req.body.phone_number) {
+        if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
           success: false,
-          error: "Validation failed",
-          message: "Name and birth date are required",
+          error: "Name, birth date, and phone number are required",
         });
       }
 
-      // Validate date format
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(req.body.birth_date)) {
-        if (req.file) {
-          console.log(
-            "Deleting file due to invalid date format:",
-            req.file.path
-          );
-          fs.unlinkSync(req.file.path);
-        }
-        return res.status(400).json({
-          success: false,
-          error: "Invalid date format",
-          message: "Birth date must be in YYYY-MM-DD format",
-        });
-      }
-
-      const connection = await pool.connect();
-      await connection.beginTransaction();
-
+      const client = await pool.connect();
       try {
-        console.log("Starting database transaction"); // Debug log
+        await client.query("BEGIN");
 
-        // First insert without photo_url to get the ID
-        const [result] = await connection.query("INSERT INTO birthdays SET ?", [
-          {
-            name: req.body.name.substring(0, 100),
-            nickname: req.body.nickname?.substring(0, 100) || null,
-            birth_date: req.body.birth_date,
-            relationship: req.body.relationship?.substring(0, 50) || "Friend",
-            zodiac: req.body.zodiac?.substring(0, 20) || null,
-            personalized_message: req.body.personalized_message || null,
-            favorite_color: req.body.favorite_color?.substring(0, 50) || null,
-            hobbies: req.body.hobbies || null,
-            gift_ideas: req.body.gift_ideas || null,
-            notes: req.body.notes || null,
-            user_id: req.userId,
-          },
-        ]);
-
-        const newId = result.insertId;
-        console.log("New record created with ID:", newId); // Debug log
-
-        let photoUrl = null;
-        // In the POST /api/birthdays endpoint:
-        if (req.file) {
-          console.log("Processing file upload for ID:", newId); // Debug log
-          const fileExt = path.extname(req.file.originalname).toLowerCase();
-          const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
-
-          if (!allowedExtensions.includes(fileExt)) {
-            throw new Error(
-              "Invalid file type. Only JPG, PNG, or GIF are allowed."
-            );
-          }
-
-          // Upload to Cloudinary
-          const result = await cloudinary.uploader.upload(req.file.path, {
-            public_id: `birthday-${newId}`,
-            folder: "birthday-reminder",
-            overwrite: true,
-          });
-
-          photoUrl = result.secure_url;
-
-          // Delete the temporary file
-          fs.unlinkSync(req.file.path);
-
-          console.log("Updating record with photo URL:", photoUrl);
-          await connection.query(
-            "UPDATE birthdays SET photo_url = ? WHERE id = ?",
-            [photoUrl, newId]
-          );
-        }
-
-        // Get complete record
-        const [rows] = await connection.query(
-          "SELECT * FROM birthdays WHERE id = ?",
-          [newId]
+        const {
+          rows: [newBirthday],
+        } = await client.query(
+          `INSERT INTO birthdays (
+            name, nickname, birth_date, relationship, 
+            zodiac, personalized_message, favorite_color,
+            hobbies, gift_ideas, notes, user_id, phone_number
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          RETURNING *`,
+          [
+            req.body.name.substring(0, 100),
+            req.body.nickname?.substring(0, 100) || null,
+            req.body.birth_date,
+            req.body.relationship?.substring(0, 50) || "Friend",
+            req.body.zodiac?.substring(0, 20) || null,
+            req.body.personalized_message || null,
+            req.body.favorite_color?.substring(0, 50) || null,
+            req.body.hobbies || null,
+            req.body.gift_ideas || null,
+            req.body.notes || null,
+            req.userId,
+            req.body.phone_number, // Required field
+          ]
         );
 
-        await connection.commit();
-        console.log("Transaction committed successfully"); // Debug log
+        let photoUrl = null;
+        if (req.file) {
+          // Cloudinary upload logic here
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            public_id: `birthday-${newBirthday.id}`,
+            folder: "birthday-reminder",
+          });
+          photoUrl = result.secure_url;
+          fs.unlinkSync(req.file.path);
 
+          await client.query(
+            "UPDATE birthdays SET photo_url = $1 WHERE id = $2",
+            [photoUrl, newBirthday.id]
+          );
+        }
+
+        await client.query("COMMIT");
         res.status(201).json({
           success: true,
-          data: rows[0],
+          data: newBirthday,
         });
       } catch (err) {
-        console.error("Transaction error:", err); // Debug log
-        await connection.rollback();
-        if (req.file) {
-          console.log("Rollback - deleting file:", req.file.path);
-          fs.unlinkSync(req.file.path);
-        }
+        await client.query("ROLLBACK");
+        if (req.file) fs.unlinkSync(req.file.path);
         throw err;
       } finally {
-        connection.release();
+        client.release();
       }
     } catch (err) {
-      console.error("Server error:", err); // Debug log
+      console.error("Server error:", err);
       res.status(500).json({
         success: false,
         error: "Server error",
@@ -309,18 +261,20 @@ app.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      console.log("Edit request for ID:", id, "with file:", req.file);
-
-      const connection = await pool.connect();
-      await connection.beginTransaction();
+      const client = await pool.connect();
 
       try {
-        const [existing] = await connection.query(
-          "SELECT * FROM birthdays WHERE id = ? AND user_id = ?",
+        await client.query("BEGIN");
+
+        // Check if record exists
+        const {
+          rows: [existing],
+        } = await client.query(
+          "SELECT * FROM birthdays WHERE id = $1 AND user_id = $2",
           [id, req.userId]
         );
 
-        if (existing.length === 0) {
+        if (!existing) {
           if (req.file) fs.unlinkSync(req.file.path);
           return res.status(404).json({
             success: false,
@@ -328,67 +282,71 @@ app.put(
           });
         }
 
-        let photoUrl = existing[0].photo_url;
+        // Handle photo update
+        let photoUrl = existing.photo_url;
         if (req.file) {
           // Delete old photo from Cloudinary if exists
           if (photoUrl) {
-            try {
-              const publicId = photoUrl.split("/").pop().split(".")[0];
-              await cloudinary.uploader.destroy(publicId);
-            } catch (err) {
-              console.error("Error deleting old image from Cloudinary:", err);
-            }
+            const publicId = photoUrl.split("/").pop().split(".")[0];
+            await cloudinary.uploader.destroy(publicId);
           }
 
-          // Upload new photo to Cloudinary
+          // Upload new photo
           const result = await cloudinary.uploader.upload(req.file.path, {
             public_id: `birthday-${id}`,
             folder: "birthday-reminder",
-            overwrite: true,
           });
-
           photoUrl = result.secure_url;
-
-          // Delete the temporary file
           fs.unlinkSync(req.file.path);
         }
 
-        const updateData = {
-          name: req.body.name || existing[0].name,
-          nickname: req.body.nickname || existing[0].nickname,
-          birth_date: req.body.birth_date || existing[0].birth_date,
-          relationship: req.body.relationship || existing[0].relationship,
-          zodiac: req.body.zodiac || existing[0].zodiac,
-          personalized_message:
-            req.body.personalized_message || existing[0].personalized_message,
-          favorite_color: req.body.favorite_color || existing[0].favorite_color,
-          hobbies: req.body.hobbies || existing[0].hobbies,
-          gift_ideas: req.body.gift_ideas || existing[0].gift_ideas,
-          notes: req.body.notes || existing[0].notes,
-          photo_url: photoUrl,
-        };
-
-        await connection.query("UPDATE birthdays SET ? WHERE id = ?", [
-          updateData,
-          id,
-        ]);
-
-        const [rows] = await connection.query(
-          "SELECT * FROM birthdays WHERE id = ?",
-          [id]
+        // Update record
+        const {
+          rows: [updated],
+        } = await client.query(
+          `UPDATE birthdays SET
+            name = COALESCE($1, name),
+            nickname = COALESCE($2, nickname),
+            birth_date = COALESCE($3, birth_date),
+            relationship = COALESCE($4, relationship),
+            zodiac = COALESCE($5, zodiac),
+            personalized_message = COALESCE($6, personalized_message),
+            favorite_color = COALESCE($7, favorite_color),
+            hobbies = COALESCE($8, hobbies),
+            gift_ideas = COALESCE($9, gift_ideas),
+            notes = COALESCE($10, notes),
+            photo_url = COALESCE($11, photo_url),
+            phone_number = COALESCE($12, phone_number)
+          WHERE id = $13
+          RETURNING *`,
+          [
+            req.body.name || null,
+            req.body.nickname || null,
+            req.body.birth_date || null,
+            req.body.relationship || null,
+            req.body.zodiac || null,
+            req.body.personalized_message || null,
+            req.body.favorite_color || null,
+            req.body.hobbies || null,
+            req.body.gift_ideas || null,
+            req.body.notes || null,
+            photoUrl || null,
+            req.body.phone_number || existing.phone_number, // Ensure phone_number is never null
+            id,
+          ]
         );
 
-        await connection.commit();
+        await client.query("COMMIT");
         res.json({
           success: true,
-          data: rows[0],
+          data: updated,
         });
       } catch (err) {
-        await connection.rollback();
+        await client.query("ROLLBACK");
         if (req.file) fs.unlinkSync(req.file.path);
         throw err;
       } finally {
-        connection.release();
+        client.release();
       }
     } catch (err) {
       console.error("PUT /api/birthdays error:", err);
