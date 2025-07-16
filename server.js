@@ -184,6 +184,8 @@ app.post(
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
+        console.log("BODY:", req.body);
+
 
         const {
           rows: [newBirthday],

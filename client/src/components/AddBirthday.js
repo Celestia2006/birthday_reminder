@@ -166,7 +166,7 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
               <input
                 type="tel"
                 id="phone"
-                name="phone"
+                name="phone_number"
                 required
                 ref={phoneNumberInput}
                 placeholder="+1234567890"
