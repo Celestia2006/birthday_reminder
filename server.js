@@ -24,8 +24,8 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "birthday-reminder",
-    allowed_formats: ["jpg", "jpeg", "png", "gif"],
-    transformation: [{ width: 800, height: 800, crop: "limit" }],
+    allowed_formats: ["jpg", "jpeg", "png"],
+    public_id: (req, file) => `birthday-${Date.now()}`,
   },
 });
 
@@ -231,6 +231,11 @@ app.post(
         photoUrl = result.secure_url;
         fs.unlinkSync(req.file.path); // Remove temp file
       }
+
+      console.log("File upload result:", {
+        original: req.file,
+        cloudinaryResult: req.file?.path, // Should show Cloudinary URL
+      });
 
       // 4. Insert into database
       const client = await pool.connect();
