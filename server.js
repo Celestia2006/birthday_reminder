@@ -2,6 +2,26 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 
+// Add this at the top of your routes (before other endpoints)
+app.get('/api/render-log-test', (req, res) => {
+  // Test different log types
+  console.log("🔵 [LOG] Basic log message");
+  console.warn("🟠 [WARN] Warning message");
+  console.error("🔴 [ERROR] Error message");
+  
+  // Test object logging
+  console.log("ℹ️ Request details:", {
+    method: req.method,
+    url: req.url,
+    headers: req.headers
+  });
+
+  res.json({
+    success: true,
+    message: "Check Render logs for test messages"
+  });
+});
+
 // Debug middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
