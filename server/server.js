@@ -5,6 +5,7 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { Pool } = require("pg");
 // Initialize express app
 const app = express();
 app.use(express.static(path.join(__dirname, "../client/build")));
@@ -35,13 +36,13 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Database connection pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "Wangxian&777",
-  database: process.env.DB_NAME || "birthday_reminder",
-  waitForConnections: true,
-  connectionLimit: 10,
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT || 5432,
+  ssl: { rejectUnauthorized: false }, // Required for Render
 });
 
 // Verify database connection
@@ -483,8 +484,9 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`); // Should NOT say 5432
 });
+
 
 app.get("/api/card/:id", checkLoggedIn, async (req, res) => {
   try {
