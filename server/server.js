@@ -1,11 +1,11 @@
 require("dotenv").config();
 const express = require("express");
-const mysql = require("mysql2/promise");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
+
 // Initialize express app
 const app = express();
 app.use(express.static(path.join(__dirname, "../client/build")));
@@ -18,58 +18,51 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Temporary name - will be renamed after getting the ID
     cb(null, file.originalname);
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  limits: { fileSize: 2 * 1024 * 1024 },
 });
-
-
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Database connection pool
+// PostgreSQL connection pool
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
-  ssl: { rejectUnauthorized: false }, // Required for Render
+  ssl: { rejectUnauthorized: false },
 });
 
 // Verify database connection
 async function testConnection() {
   try {
-    const connection = await pool.getConnection();
-    console.log("Successfully connected to the database");
-    connection.release();
+    const client = await pool.connect();
+    console.log("✅ Database connected successfully");
+    client.release();
   } catch (err) {
-    console.error("Database connection failed:", err);
+    console.error("❌ Database connection failed:", err);
     process.exit(1);
   }
 }
 testConnection();
 
 const checkLoggedIn = (req, res, next) => {
-  console.log("Incoming request headers:", req.headers); // Debug log
   const userId = req.headers["user-id"];
-
   if (!userId) {
-    console.log("No user-id header found"); // Debug log
     return res.status(401).json({
       success: false,
       error: "Not logged in",
     });
   }
-
   req.userId = userId;
   next();
 };
@@ -78,15 +71,12 @@ const checkLoggedIn = (req, res, next) => {
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log("Login attempt:", username, password);
-
-    const [users] = await pool.query(
-      "SELECT id, username FROM users WHERE username = ? AND password = ?",
+    const { rows } = await pool.query(
+      "SELECT id, username FROM users WHERE username = $1 AND password = $2",
       [username, password]
     );
 
-    if (users.length === 0) {
-      console.log("No matching user found");
+    if (rows.length === 0) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -95,8 +85,8 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.json({
       success: true,
-      userId: users[0].id,
-      username: users[0].username,
+      userId: rows[0].id,
+      username: rows[0].username,
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -118,8 +108,8 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    const [existing] = await pool.query(
-      "SELECT * FROM users WHERE username = ? OR email = ?",
+    const { rows: existing } = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
       [username, email]
     );
 
@@ -130,14 +120,16 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    const [result] = await pool.query(
-      "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
+    const {
+      rows: [user],
+    } = await pool.query(
+      "INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id",
       [username, password, email]
     );
 
     res.status(201).json({
       success: true,
-      userId: result.insertId,
+      userId: user.id,
       username,
     });
   } catch (err) {
@@ -152,8 +144,9 @@ app.post("/api/auth/register", async (req, res) => {
 // Protected API endpoints
 app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT *, YEAR(CURDATE()) - YEAR(birth_date) AS age FROM birthdays WHERE user_id = ?",
+    const { rows } = await pool.query(
+      `SELECT *, EXTRACT(YEAR FROM age(birth_date)) AS age 
+       FROM birthdays WHERE user_id = $1`,
       [req.userId]
     );
     res.json(rows);
@@ -171,128 +164,81 @@ app.post(
   checkLoggedIn,
   upload.single("photo"),
   async (req, res) => {
-    console.log("File upload received:", req.file); // Debug log
-    console.log("Request body:", req.body); // Debug log
-
     try {
-      // Validate required fields
       if (!req.body.name || !req.body.birth_date) {
-        if (req.file) {
-          console.log("Deleting invalid file:", req.file.path);
-          fs.unlinkSync(req.file.path);
-        }
+        if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
           success: false,
-          error: "Validation failed",
-          message: "Name and birth date are required",
+          error: "Name and birth date are required",
         });
       }
 
-      // Validate date format
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(req.body.birth_date)) {
-        if (req.file) {
-          console.log(
-            "Deleting file due to invalid date format:",
-            req.file.path
-          );
-          fs.unlinkSync(req.file.path);
-        }
-        return res.status(400).json({
-          success: false,
-          error: "Invalid date format",
-          message: "Birth date must be in YYYY-MM-DD format",
-        });
-      }
-
-      const connection = await pool.getConnection();
-      await connection.beginTransaction();
-
+      const client = await pool.connect();
       try {
-        console.log("Starting database transaction"); // Debug log
+        await client.query("BEGIN");
 
-        // First insert without photo_url to get the ID
-        const [result] = await connection.query("INSERT INTO birthdays SET ?", [
-          {
-            name: req.body.name.substring(0, 100),
-            nickname: req.body.nickname?.substring(0, 100) || null,
-            birth_date: req.body.birth_date,
-            relationship: req.body.relationship?.substring(0, 50) || "Friend",
-            zodiac: req.body.zodiac?.substring(0, 20) || null,
-            personalized_message: req.body.personalized_message || null,
-            favorite_color: req.body.favorite_color?.substring(0, 50) || null,
-            hobbies: req.body.hobbies || null,
-            gift_ideas: req.body.gift_ideas || null,
-            notes: req.body.notes || null,
-            user_id: req.userId,
-          },
-        ]);
-
-        const newId = result.insertId;
-        console.log("New record created with ID:", newId); // Debug log
+        const {
+          rows: [newBirthday],
+        } = await client.query(
+          `INSERT INTO birthdays (
+          name, nickname, birth_date, relationship, 
+          zodiac, personalized_message, favorite_color,
+          hobbies, gift_ideas, notes, user_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *`,
+          [
+            req.body.name.substring(0, 100),
+            req.body.nickname?.substring(0, 100) || null,
+            req.body.birth_date,
+            req.body.relationship?.substring(0, 50) || "Friend",
+            req.body.zodiac?.substring(0, 20) || null,
+            req.body.personalized_message || null,
+            req.body.favorite_color?.substring(0, 50) || null,
+            req.body.hobbies || null,
+            req.body.gift_ideas || null,
+            req.body.notes || null,
+            req.userId,
+          ]
+        );
 
         let photoUrl = null;
         if (req.file) {
-          console.log("Processing file upload for ID:", newId); // Debug log
-
           const fileExt = path.extname(req.file.originalname).toLowerCase();
           const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
           if (!allowedExtensions.includes(fileExt)) {
-            throw new Error(
-              "Invalid file type. Only JPG, PNG, or GIF are allowed."
-            );
+            throw new Error("Invalid file type");
           }
 
-          const newFilename = `${newId}${fileExt}`;
-          const oldPath = req.file.path;
-          const uploadDir = path.join(
+          const newFilename = `${newBirthday.id}${fileExt}`;
+          const newPath = path.join(
             __dirname,
-            "../client/public/images/upload"
+            "../client/public/images/upload",
+            newFilename
           );
-          const newPath = path.join(uploadDir, newFilename);
-
-          // Ensure upload directory exists
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-
-          console.log(`Renaming ${oldPath} to ${newPath}`); // Debug log
-          fs.renameSync(oldPath, newPath);
+          fs.renameSync(req.file.path, newPath);
           photoUrl = `/images/upload/${newFilename}`;
 
-          console.log("Updating record with photo URL:", photoUrl); // Debug log
-          await connection.query(
-            "UPDATE birthdays SET photo_url = ? WHERE id = ?",
-            [photoUrl, newId]
+          await client.query(
+            "UPDATE birthdays SET photo_url = $1 WHERE id = $2",
+            [photoUrl, newBirthday.id]
           );
         }
 
-        // Get complete record
-        const [rows] = await connection.query(
-          "SELECT * FROM birthdays WHERE id = ?",
-          [newId]
-        );
-
-        await connection.commit();
-        console.log("Transaction committed successfully"); // Debug log
-
+        await client.query("COMMIT");
         res.status(201).json({
           success: true,
-          data: rows[0],
+          data: newBirthday,
         });
       } catch (err) {
-        console.error("Transaction error:", err); // Debug log
-        await connection.rollback();
-        if (req.file) {
-          console.log("Rollback - deleting file:", req.file.path);
-          fs.unlinkSync(req.file.path);
-        }
+        await client.query("ROLLBACK");
+        if (req.file) fs.unlinkSync(req.file.path);
         throw err;
       } finally {
-        connection.release();
+        client.release();
       }
     } catch (err) {
-      console.error("Server error:", err); // Debug log
+      console.error("Server error:", err);
       res.status(500).json({
         success: false,
         error: "Server error",
@@ -302,6 +248,8 @@ app.post(
   }
 );
 
+// ... (similar updates for PUT and DELETE endpoints) ...
+
 app.put(
   "/api/birthdays/:id",
   checkLoggedIn,
@@ -309,18 +257,20 @@ app.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      console.log("Edit request for ID:", id, "with file:", req.file);
-
-      const connection = await pool.getConnection();
-      await connection.beginTransaction();
+      const client = await pool.connect();
 
       try {
-        const [existing] = await connection.query(
-          "SELECT * FROM birthdays WHERE id = ? AND user_id = ?",
+        await client.query("BEGIN");
+
+        // 1. Check if record exists
+        const {
+          rows: [existing],
+        } = await client.query(
+          "SELECT * FROM birthdays WHERE id = $1 AND user_id = $2",
           [id, req.userId]
         );
 
-        if (existing.length === 0) {
+        if (!existing) {
           if (req.file) fs.unlinkSync(req.file.path);
           return res.status(404).json({
             success: false,
@@ -328,14 +278,13 @@ app.put(
           });
         }
 
-        let photoUrl = existing[0].photo_url;
+        // 2. Handle photo update if new file uploaded
+        let photoUrl = existing.photo_url;
         if (req.file) {
           // Delete old photo if exists
           if (photoUrl) {
             const oldPath = path.join(__dirname, "../client/public", photoUrl);
-            if (fs.existsSync(oldPath)) {
-              fs.unlinkSync(oldPath);
-            }
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
           }
 
           // Process new photo
@@ -347,57 +296,60 @@ app.put(
           }
 
           const newFilename = `${id}${fileExt}`;
-          const oldPath = req.file.path;
-          const uploadDir = path.join(
+          const newPath = path.join(
             __dirname,
-            "../client/public/images/upload"
+            "../client/public/images/upload",
+            newFilename
           );
-          const newPath = path.join(uploadDir, newFilename);
-
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-
-          fs.renameSync(oldPath, newPath);
+          fs.renameSync(req.file.path, newPath);
           photoUrl = `/images/upload/${newFilename}`;
         }
 
-        const updateData = {
-          name: req.body.name || existing[0].name,
-          nickname: req.body.nickname || existing[0].nickname,
-          birth_date: req.body.birth_date || existing[0].birth_date,
-          relationship: req.body.relationship || existing[0].relationship,
-          zodiac: req.body.zodiac || existing[0].zodiac,
-          personalized_message:
-            req.body.personalized_message || existing[0].personalized_message,
-          favorite_color: req.body.favorite_color || existing[0].favorite_color,
-          hobbies: req.body.hobbies || existing[0].hobbies,
-          gift_ideas: req.body.gift_ideas || existing[0].gift_ideas,
-          notes: req.body.notes || existing[0].notes,
-          photo_url: photoUrl,
-        };
-
-        await connection.query("UPDATE birthdays SET ? WHERE id = ?", [
-          updateData,
-          id,
-        ]);
-
-        const [rows] = await connection.query(
-          "SELECT * FROM birthdays WHERE id = ?",
-          [id]
+        // 3. Update record
+        const {
+          rows: [updated],
+        } = await client.query(
+          `UPDATE birthdays SET
+          name = COALESCE($1, name),
+          nickname = COALESCE($2, nickname),
+          birth_date = COALESCE($3, birth_date),
+          relationship = COALESCE($4, relationship),
+          zodiac = COALESCE($5, zodiac),
+          personalized_message = COALESCE($6, personalized_message),
+          favorite_color = COALESCE($7, favorite_color),
+          hobbies = COALESCE($8, hobbies),
+          gift_ideas = COALESCE($9, gift_ideas),
+          notes = COALESCE($10, notes),
+          photo_url = COALESCE($11, photo_url)
+        WHERE id = $12
+        RETURNING *`,
+          [
+            req.body.name || null,
+            req.body.nickname || null,
+            req.body.birth_date || null,
+            req.body.relationship || null,
+            req.body.zodiac || null,
+            req.body.personalized_message || null,
+            req.body.favorite_color || null,
+            req.body.hobbies || null,
+            req.body.gift_ideas || null,
+            req.body.notes || null,
+            photoUrl || null,
+            id,
+          ]
         );
 
-        await connection.commit();
+        await client.query("COMMIT");
         res.json({
           success: true,
-          data: rows[0],
+          data: updated,
         });
       } catch (err) {
-        await connection.rollback();
+        await client.query("ROLLBACK");
         if (req.file) fs.unlinkSync(req.file.path);
         throw err;
       } finally {
-        connection.release();
+        client.release();
       }
     } catch (err) {
       console.error("PUT /api/birthdays error:", err);
@@ -413,32 +365,47 @@ app.put(
 app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
   try {
     const { id } = req.params;
+    const client = await pool.connect();
 
-    const [existing] = await pool.query(
-      "SELECT * FROM birthdays WHERE id = ? AND user_id = ?",
-      [id, req.userId]
-    );
+    try {
+      await client.query("BEGIN");
 
-    if (existing.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Birthday not found",
-      });
-    }
-
-    if (existing[0].photo_url) {
-      const photoPath = path.join(
-        __dirname,
-        "../client/public",
-        existing[0].photo_url
+      // 1. Check if record exists and get photo info
+      const {
+        rows: [existing],
+      } = await client.query(
+        "SELECT photo_url FROM birthdays WHERE id = $1 AND user_id = $2",
+        [id, req.userId]
       );
-      if (fs.existsSync(photoPath)) {
-        fs.unlinkSync(photoPath);
-      }
-    }
 
-    await pool.query("DELETE FROM birthdays WHERE id = ?", [id]);
-    res.status(204).end();
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          error: "Birthday not found",
+        });
+      }
+
+      // 2. Delete photo file if exists
+      if (existing.photo_url) {
+        const photoPath = path.join(
+          __dirname,
+          "../client/public",
+          existing.photo_url
+        );
+        if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+      }
+
+      // 3. Delete record
+      await client.query("DELETE FROM birthdays WHERE id = $1", [id]);
+      await client.query("COMMIT");
+
+      res.status(204).end();
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error("DELETE /api/birthdays error:", err);
     res.status(500).json({
@@ -448,28 +415,9 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
   }
 });
 
-app.get("/api/user", checkLoggedIn, async (req, res) => {
-  try {
-    const [users] = await pool.query(
-      "SELECT id, username, email FROM users WHERE id = ?",
-      [req.userId]
-    );
-
-    if (users.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
-    }
-
-    res.json(users[0]);
-  } catch (err) {
-    console.error("User profile error:", err);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch user profile",
-    });
-  }
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Error handling middleware
@@ -480,41 +428,4 @@ app.use((err, req, res, next) => {
     error: "Server error",
     message: err.message,
   });
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`); // Should NOT say 5432
-});
-
-
-app.get("/api/card/:id", checkLoggedIn, async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM birthdays WHERE id = ? AND user_id = ?",
-      [req.params.id, req.userId]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Card not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      data: rows[0],
-    });
-  } catch (err) {
-    console.error("GET /api/card error:", err);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch card",
-    });
-  }
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 });
