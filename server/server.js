@@ -1,36 +1,112 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
+const app = express();
+
+// Test endpoint - Minimal version
+app.get("/api/log-test", (req, res) => {
+  console.log("🔥 BASIC TEST LOG - SHOULD APPEAR IN RENDER");
+  console.error("🔴 TEST ERROR LOG - SHOULD APPEAR IN RENDER");
+
+  res.json({
+    success: true,
+    message: "Check Render logs for test messages",
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server started on port ${PORT}`);
+});
+{
+  /*require("dotenv").config();
+const express = require("express");
+const app = express();
+{/*const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");*/
+}
 
-// Initialize express app
-const app = express();
-app.use(express.static(path.join(__dirname, "../client/build")));
+// 1. Enable raw logging
+{
+  /*app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
-// Configure file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../client/public/images/upload");
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
+// 2. Add test endpoints
+app.get('/api/debug-test', (req, res) => {
+  console.log("🔥 TEST LOG - THIS SHOULD APPEAR IN RENDER LOGS");
+  res.json({ 
+    success: true,
+    message: "Check your Render logs for '🔥 TEST LOG'"
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔍 Test endpoint: http://localhost:${PORT}/api/debug-test`);
+  console.log(`🌩️ Cloudinary config:`, {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY ? "***set***" : "missing",
+    api_secret: process.env.CLOUDINARY_API_SECRET ? "***set***" : "missing",
+  });
+});
+
+{/*app.use(express.static(path.join(__dirname, "../client/build")));*/
+}
+
+// Configure Cloudinary
+{
+  /*cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configure file storage with Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "birthday-reminder",
+    allowed_formats: ["jpg", "jpeg", "png"],
+    public_id: (req, file) => `birthday-${Date.now()}`,
   },
 });
 
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: "File upload error" });
+  }
+  next(err);
+});
+
 const upload = multer({
-  storage: storage,
+  storage: new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: "birthday-reminder",
+      format: "jpg",
+      public_id: (req, file) => `birthday-${Date.now()}-${req.userId}`,
+    },
+  }),
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "user-id"],
+  })
+);
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 // PostgreSQL connection pool
 const pool = new Pool({
@@ -40,6 +116,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   ssl: { rejectUnauthorized: false },
+  max: 20, // Maximum number of connections in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection cannot be established
 });
 
 // Verify database connection
@@ -57,15 +136,37 @@ testConnection();
 
 const checkLoggedIn = (req, res, next) => {
   const userId = req.headers["user-id"];
+
+  // Add debug logging
+  console.log(`[DEBUG] Authentication check - user-id header: ${userId}`);
+
   if (!userId) {
+    console.log("[DEBUG] No user-id header found - rejecting request");
     return res.status(401).json({
       success: false,
       error: "Not logged in",
     });
   }
+
   req.userId = userId;
+  console.log(`[DEBUG] Authenticated request from user ID: ${userId}`);
   next();
 };
+
+// Add this route temporarily:
+app.get('/api/cloudinary-test', async (req, res) => {
+  try {
+    const result = await cloudinary.uploader.upload(
+      "https://res.cloudinary.com/demo/image/upload/sample.jpghttps://res.cloudinary.com/dffrevtpk/image/upload/v1752667653/main-sample.png",
+      {
+        folder: "birthday-reminder",
+      }
+    );
+    res.json({ success: true, url: result.secure_url });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
 
 // Auth Endpoints
 app.post("/api/auth/login", async (req, res) => {
@@ -144,14 +245,23 @@ app.post("/api/auth/register", async (req, res) => {
 // Protected API endpoints
 app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
   try {
+    console.log(`[DEBUG] Fetching birthdays for user ID: ${req.userId}`); // New line
+
     const { rows } = await pool.query(
       `SELECT *, EXTRACT(YEAR FROM age(birth_date)) AS age 
        FROM birthdays WHERE user_id = $1`,
       [req.userId]
     );
+
+    console.log(
+      `[DEBUG] Found ${rows.length} birthdays for user ${req.userId}`
+    ); // New line
     res.json(rows);
   } catch (err) {
-    console.error("GET /api/birthdays error:", err);
+    console.error(
+      `[ERROR] Failed to fetch birthdays for user ${req.userId}:`,
+      err
+    );
     res.status(500).json({
       success: false,
       error: "Failed to fetch birthdays",
@@ -165,33 +275,67 @@ app.post(
   upload.single("photo"),
   async (req, res) => {
     try {
-      if (!req.body.name || !req.body.birth_date) {
+      // 1. Validate required fields
+      if (!req.body.name || !req.body.birth_date || !req.body.phone_number) {
         if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({
           success: false,
-          error: "Name and birth date are required",
+          error: "Name, birth date, and phone number are required",
         });
       }
 
+
+      console.log("Raw request body:", req.body);
+      // 2. Simple 10-digit phone validation
+      const phoneDigits = String(req.body.phone_number).replace(/\D/g, "");
+      console.log("Processed phone:", phoneDigits);
+      if (phoneDigits.length !== 10) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).json({
+          success: false,
+          error: "Phone number must be 10 digits",
+          example: "1234567890",
+        });
+      }
+
+      // 3. Process Cloudinary upload if photo exists
+      let photoUrl = null;
+      if (req.file) {
+        console.log("File received:", req.file);
+        const result = await cloudinary.uploader.upload(req.file.path);
+        console.log("Cloudinary response:", result);
+        photoUrl = result.secure_url; // Override local path
+      }
+
+      console.log("File upload result:", {
+        original: req.file,
+        cloudinaryResult: req.file?.path, // Should show Cloudinary URL
+      });
+
+      // 4. Insert into database
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-
+        console.log("Multer storage type:", upload.storage.constructor.name);
+        // Should log "CloudinaryStorage"
         const {
           rows: [newBirthday],
         } = await client.query(
           `INSERT INTO birthdays (
-          name, nickname, birth_date, relationship, 
-          zodiac, personalized_message, favorite_color,
-          hobbies, gift_ideas, notes, user_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *`,
+            name, nickname, phone_number, birth_date,
+            relationship, zodiac, photo_url,
+            personalized_message, favorite_color,
+            hobbies, gift_ideas, notes, user_id
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          RETURNING *`,
           [
             req.body.name.substring(0, 100),
             req.body.nickname?.substring(0, 100) || null,
+            phoneDigits, // Store only the 10 digits
             req.body.birth_date,
             req.body.relationship?.substring(0, 50) || "Friend",
             req.body.zodiac?.substring(0, 20) || null,
+            photoUrl,
             req.body.personalized_message || null,
             req.body.favorite_color?.substring(0, 50) || null,
             req.body.hobbies || null,
@@ -201,30 +345,6 @@ app.post(
           ]
         );
 
-        let photoUrl = null;
-        if (req.file) {
-          const fileExt = path.extname(req.file.originalname).toLowerCase();
-          const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
-
-          if (!allowedExtensions.includes(fileExt)) {
-            throw new Error("Invalid file type");
-          }
-
-          const newFilename = `${newBirthday.id}${fileExt}`;
-          const newPath = path.join(
-            __dirname,
-            "../client/public/images/upload",
-            newFilename
-          );
-          fs.renameSync(req.file.path, newPath);
-          photoUrl = `/images/upload/${newFilename}`;
-
-          await client.query(
-            "UPDATE birthdays SET photo_url = $1 WHERE id = $2",
-            [photoUrl, newBirthday.id]
-          );
-        }
-
         await client.query("COMMIT");
         res.status(201).json({
           success: true,
@@ -232,23 +352,24 @@ app.post(
         });
       } catch (err) {
         await client.query("ROLLBACK");
-        if (req.file) fs.unlinkSync(req.file.path);
+        if (photoUrl) {
+          await cloudinary.uploader.destroy(
+            photoUrl.split("/").pop().split(".")[0]
+          );
+        }
         throw err;
       } finally {
         client.release();
       }
     } catch (err) {
-      console.error("Server error:", err);
+      console.error("Error creating birthday:", err);
       res.status(500).json({
         success: false,
-        error: "Server error",
-        message: err.message,
+        error: "Failed to create birthday record",
       });
     }
   }
 );
-
-// ... (similar updates for PUT and DELETE endpoints) ...
 
 app.put(
   "/api/birthdays/:id",
@@ -271,7 +392,13 @@ app.put(
         );
 
         if (!existing) {
-          if (req.file) fs.unlinkSync(req.file.path);
+          if (req.file) {
+            try {
+              await cloudinary.uploader.destroy(req.file.filename);
+            } catch (e) {
+              console.error("Error deleting failed upload:", e);
+            }
+          }
           return res.status(404).json({
             success: false,
             error: "Birthday not found",
@@ -281,28 +408,18 @@ app.put(
         // 2. Handle photo update if new file uploaded
         let photoUrl = existing.photo_url;
         if (req.file) {
-          // Delete old photo if exists
+          // Delete old photo from Cloudinary if exists
           if (photoUrl) {
-            const oldPath = path.join(__dirname, "../client/public", photoUrl);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            try {
+              const publicId = photoUrl.split("/").pop().split(".")[0];
+              await cloudinary.uploader.destroy(publicId);
+            } catch (err) {
+              console.error("Error deleting old image:", err);
+            }
           }
 
-          // Process new photo
-          const fileExt = path.extname(req.file.originalname).toLowerCase();
-          const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
-
-          if (!allowedExtensions.includes(fileExt)) {
-            throw new Error("Invalid file type. Only images are allowed.");
-          }
-
-          const newFilename = `${id}${fileExt}`;
-          const newPath = path.join(
-            __dirname,
-            "../client/public/images/upload",
-            newFilename
-          );
-          fs.renameSync(req.file.path, newPath);
-          photoUrl = `/images/upload/${newFilename}`;
+          // New photo is automatically uploaded to Cloudinary
+          photoUrl = req.file.path;
         }
 
         // 3. Update record
@@ -310,19 +427,20 @@ app.put(
           rows: [updated],
         } = await client.query(
           `UPDATE birthdays SET
-          name = COALESCE($1, name),
-          nickname = COALESCE($2, nickname),
-          birth_date = COALESCE($3, birth_date),
-          relationship = COALESCE($4, relationship),
-          zodiac = COALESCE($5, zodiac),
-          personalized_message = COALESCE($6, personalized_message),
-          favorite_color = COALESCE($7, favorite_color),
-          hobbies = COALESCE($8, hobbies),
-          gift_ideas = COALESCE($9, gift_ideas),
-          notes = COALESCE($10, notes),
-          photo_url = COALESCE($11, photo_url)
-        WHERE id = $12
-        RETURNING *`,
+            name = COALESCE($1, name),
+            nickname = COALESCE($2, nickname),
+            birth_date = COALESCE($3, birth_date),
+            relationship = COALESCE($4, relationship),
+            zodiac = COALESCE($5, zodiac),
+            personalized_message = COALESCE($6, personalized_message),
+            favorite_color = COALESCE($7, favorite_color),
+            hobbies = COALESCE($8, hobbies),
+            gift_ideas = COALESCE($9, gift_ideas),
+            notes = COALESCE($10, notes),
+            photo_url = COALESCE($11, photo_url),
+            phone_number = COALESCE($12, phone_number)
+          WHERE id = $13
+          RETURNING *`,
           [
             req.body.name || null,
             req.body.nickname || null,
@@ -335,6 +453,7 @@ app.put(
             req.body.gift_ideas || null,
             req.body.notes || null,
             photoUrl || null,
+            req.body.phone_number || existing.phone_number,
             id,
           ]
         );
@@ -346,7 +465,13 @@ app.put(
         });
       } catch (err) {
         await client.query("ROLLBACK");
-        if (req.file) fs.unlinkSync(req.file.path);
+        if (req.file) {
+          try {
+            await cloudinary.uploader.destroy(req.file.filename);
+          } catch (e) {
+            console.error("Error deleting failed upload:", e);
+          }
+        }
         throw err;
       } finally {
         client.release();
@@ -385,14 +510,14 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
         });
       }
 
-      // 2. Delete photo file if exists
+      // 2. Delete photo from Cloudinary if exists
       if (existing.photo_url) {
-        const photoPath = path.join(
-          __dirname,
-          "../client/public",
-          existing.photo_url
-        );
-        if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+        try {
+          const publicId = existing.photo_url.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error("Error deleting image from Cloudinary:", err);
+        }
       }
 
       // 3. Delete record
@@ -415,6 +540,11 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
   }
 });
 
+// Serve React app
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -428,4 +558,5 @@ app.use((err, req, res, next) => {
     error: "Server error",
     message: err.message,
   });
-});
+});*/
+}
