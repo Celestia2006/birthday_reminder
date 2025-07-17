@@ -137,6 +137,7 @@
 }
 
 .detail-content {
+  margin: 0 auto;
   width: 100%;
   padding: 0 30px; /* Matches other content padding */
   margin-bottom: 20px;

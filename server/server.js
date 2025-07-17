@@ -186,6 +186,44 @@ app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
   }
 });
 
+app.get("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(
+      `SELECT *, 
+       EXTRACT(YEAR FROM age(birth_date)) AS age,
+       (SELECT EXTRACT(DAY FROM (birth_date - CURRENT_DATE)) AS days_until_birthday
+       FROM birthdays 
+       WHERE id = $1 AND user_id = $2`,
+      [id, req.userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Birthday not found",
+      });
+    }
+
+    // Format phone number for display (remove country code)
+    const birthday = rows[0];
+    if (birthday.phone_number) {
+      birthday.phone_number = birthday.phone_number.replace(/^91/, "");
+    }
+
+    res.json({
+      success: true,
+      data: birthday,
+    });
+  } catch (err) {
+    console.error("Failed to fetch birthday:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch birthday details",
+    });
+  }
+});
+
 app.post(
   "/api/birthdays",
   checkLoggedIn,
