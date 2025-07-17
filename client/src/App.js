@@ -16,6 +16,7 @@ import Login from "./components/Login";
 import Signup from "./components/SignUp";
 import { useAuth } from "./components/AuthContext";
 import axios from "axios";
+import { getBirthdays } from "./api/api";
 
 
 function App() {
@@ -182,9 +183,6 @@ function App() {
           errorMessage;
       }
       throw new Error(errorMessage);
-    }
-    finally{
-      navigate("/", { replace: true });
     }
   };
 
