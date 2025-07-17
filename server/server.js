@@ -34,6 +34,12 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 });
 
+function extractPublicId(url) {
+  // Extract everything after /upload/ and before the file extension
+  const matches = url.match(/\/upload\/(.+?)\.\w+$/);
+  return matches ? matches[1] : null;
+}
+
 // Middleware
 app.use(
   cors({
@@ -206,11 +212,13 @@ app.post(
       // Process Cloudinary upload if photo exists
       let photoUrl = null;
       if (req.file) {
-        const result = await cloudinary.uploader.upload(req.file.path);
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "birthday-reminder", // Add this
+        });
         photoUrl = result.secure_url;
-        // Clean up the temporary file
         fs.unlinkSync(req.file.path);
       }
+
 
       // Insert into database
       const {
@@ -292,14 +300,18 @@ app.put(
         let photoUrl = existing.photo_url;
         if (req.file) {
           // Delete old photo from Cloudinary if exists
-          if (photoUrl) {
-            const publicId = photoUrl.split("/").pop().split(".")[0];
-            await cloudinary.uploader.destroy(publicId);
+          if (existing.photo_url) {
+            const publicId = extractPublicId(existing.photo_url);
+            if (publicId) {
+              await cloudinary.uploader.destroy(publicId);
+            }
           }
           // Upload new photo
-          const result = await cloudinary.uploader.upload(req.file.path);
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: "birthday-reminder", // Add this to keep organized
+          });
           photoUrl = result.secure_url;
-          fs.unlinkSync(req.file.path); // Clean up temp file
+          fs.unlinkSync(req.file.path);
         }
 
         // Update record
@@ -369,7 +381,6 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
     try {
       await client.query("BEGIN");
 
-      // Check if record exists and get photo info
       const {
         rows: [existing],
       } = await client.query(
@@ -384,13 +395,17 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
         });
       }
 
-      // Delete photo from Cloudinary if exists
       if (existing.photo_url) {
-        const publicId = existing.photo_url.split("/").pop().split(".")[0];
-        await cloudinary.uploader.destroy(publicId);
+        const publicId = extractPublicId(existing.photo_url);
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.error("Cloudinary deletion error:", err);
+          }
+        }
       }
 
-      // Delete record
       await client.query("DELETE FROM birthdays WHERE id = $1", [id]);
       await client.query("COMMIT");
 
