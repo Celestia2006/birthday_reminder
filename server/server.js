@@ -1,6 +1,13 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const { Pool } = require("pg");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 // Test endpoint - Minimal version
 app.get("/api/log-test", (req, res) => {
@@ -17,52 +24,11 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server started on port ${PORT}`);
 });
-{
-  /*require("dotenv").config();
-const express = require("express");
-const app = express();
-{/*const cors = require("cors");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const { Pool } = require("pg");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");*/
-}
 
-// 1. Enable raw logging
-{
-  /*app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
+{/*app.use(express.static(path.join(__dirname, "../client/build")));*/}
 
-// 2. Add test endpoints
-app.get('/api/debug-test', (req, res) => {
-  console.log("🔥 TEST LOG - THIS SHOULD APPEAR IN RENDER LOGS");
-  res.json({ 
-    success: true,
-    message: "Check your Render logs for '🔥 TEST LOG'"
-  });
-});
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔍 Test endpoint: http://localhost:${PORT}/api/debug-test`);
-  console.log(`🌩️ Cloudinary config:`, {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY ? "***set***" : "missing",
-    api_secret: process.env.CLOUDINARY_API_SECRET ? "***set***" : "missing",
-  });
-});
-
-{/*app.use(express.static(path.join(__dirname, "../client/build")));*/
-}
-
-// Configure Cloudinary
-{
-  /*cloudinary.config({
+  cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -558,5 +524,5 @@ app.use((err, req, res, next) => {
     error: "Server error",
     message: err.message,
   });
-});*/
-}
+});
+
