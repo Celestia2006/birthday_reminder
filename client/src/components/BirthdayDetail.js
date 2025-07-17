@@ -4,27 +4,19 @@ import "../styles/BirthdayDetail.css";
 
 const calculateAge = (birthDate) => {
   if (!birthDate) return 0;
-
   const today = new Date();
   const birthDateObj = new Date(birthDate);
-
   if (isNaN(birthDateObj.getTime())) return 0;
 
   let age = today.getFullYear() - birthDateObj.getFullYear();
   const monthDiff = today.getMonth() - birthDateObj.getMonth();
-  const dayDiff = today.getDate() - birthDateObj.getDate();
-
-  if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDateObj.getDate())
+  ) {
     age--;
   }
-
   return age;
-};
-
-const formatPhoneNumber = (phone) => {
-  if (!phone) return null;
-  // Remove country code if it's Indian number (91)
-  return phone.replace(/^91/, "");
 };
 
 const BirthdayDetail = ({ birthdays, onDelete }) => {
@@ -38,13 +30,8 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
 
   const handleBack = () => navigate(-1);
   const handleEdit = () => navigate(`/edit-birthday/${birthday.id}`);
-
   const handleDelete = async () => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${birthday.name}'s birthday?`
-      )
-    ) {
+    if (window.confirm(`Delete ${birthday.name}'s birthday?`)) {
       try {
         await onDelete(birthday.id);
       } catch (error) {
@@ -55,25 +42,19 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
 
   const calculateDaysUntilBirthday = () => {
     if (!birthday.date) return null;
-
     const today = new Date();
-    const currentYear = today.getFullYear();
     const birthDate = new Date(birthday.date);
     let nextBirthday = new Date(
-      currentYear,
+      today.getFullYear(),
       birthDate.getMonth(),
       birthDate.getDate()
     );
-
-    if (nextBirthday < today) {
-      nextBirthday.setFullYear(currentYear + 1);
-    }
-
+    if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
     return Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
   };
 
   const daysUntilBirthday = calculateDaysUntilBirthday();
-  const formattedPhone = formatPhoneNumber(birthday.phone_number);
+  const formattedPhone = birthday.phone_number?.replace(/^91/, ""); // Remove country code if present
 
   return (
     <div className="birthday-detail-container">
@@ -88,14 +69,12 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             src={birthday.photo || "/images/default.jpeg"}
             alt={birthday.name}
             className="detail-image"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "/images/default.jpeg";
-            }}
+            onError={(e) => (e.target.src = "/images/default.jpeg")}
           />
         </div>
 
         <div className="detail-content">
+          {/* Birthday Info */}
           <div className="detail-section">
             <h3>🎉 Birthday</h3>
             <p>
@@ -108,6 +87,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             <p>Turning {calculateAge(birthday.date) + 1}</p>
           </div>
 
+          {/* Days Until Birthday */}
           {daysUntilBirthday !== null && (
             <div className="detail-section">
               <h3>⏳ Days Until Birthday</h3>
@@ -115,21 +95,15 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
+          {/* Phone Number */}
           {formattedPhone && (
             <div className="detail-section">
-              <h3>📱 Phone Number</h3>
+              <h3>📱 Phone</h3>
               <p>{formattedPhone}</p>
-              <a
-                href={`https://wa.me/91${formattedPhone}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="whatsapp-link"
-              >
-                Send WhatsApp Message
-              </a>
             </div>
           )}
 
+          {/* Zodiac */}
           {birthday.zodiac && (
             <div className="detail-section">
               <h3>♋ Zodiac</h3>
@@ -137,6 +111,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
+          {/* Relationship */}
           {birthday.relationship && (
             <div className="detail-section">
               <h3>💞 Relationship</h3>
@@ -144,13 +119,15 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
-          {birthday.favoriteColor && (
+          {/* Favorite Color */}
+          {birthday.favorite_color && (
             <div className="detail-section">
               <h3>🎨 Favorite Color</h3>
-              <p>{birthday.favoriteColor}</p>
+              <p>{birthday.favorite_color}</p>
             </div>
           )}
 
+          {/* Hobbies */}
           {birthday.hobbies && (
             <div className="detail-section">
               <h3>⚡ Hobbies</h3>
@@ -158,20 +135,23 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
-          {birthday.giftIdeas && (
+          {/* Gift Ideas */}
+          {birthday.gift_ideas && (
             <div className="detail-section">
               <h3>🎁 Gift Ideas</h3>
-              <p>{birthday.giftIdeas}</p>
+              <p>{birthday.gift_ideas}</p>
             </div>
           )}
 
-          {birthday.personalizedMessage && (
+          {/* Personalized Message */}
+          {birthday.personalized_message && (
             <div className="detail-section">
-              <h3>💌 Personalized Message</h3>
-              <p>{birthday.personalizedMessage}</p>
+              <h3>💌 Message</h3>
+              <p>{birthday.personalized_message}</p>
             </div>
           )}
 
+          {/* Notes */}
           {birthday.notes && (
             <div className="detail-section">
               <h3>📝 Notes</h3>
