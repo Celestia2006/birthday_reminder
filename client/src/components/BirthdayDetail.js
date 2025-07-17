@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/BirthdayDetail.css";
-import { exportCardAsImage } from "../utils/cardToImage";
 
 const calculateAge = (birthDate) => {
   if (!birthDate) return 0;
