@@ -17,6 +17,7 @@ import Signup from "./components/SignUp";
 import { useAuth } from "./components/AuthContext";
 import axios from "axios";
 
+
 function App() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -27,48 +28,17 @@ function App() {
   // Fetch birthdays from database
   useEffect(() => {
     if (user) {
-      // In App.js, modify the fetchBirthdays function
-      const fetchBirthdays = async () => {
+      const fetchData = async () => {
         try {
-          console.log("Current user:", user); // Add this to verify user data
-          const response = await axios.get("/api/birthdays", {
-            headers: {
-              "user-id": user.id, // Explicitly send user ID
-            },
-          });
-          console.log("Fetched birthdays:", response.data); // Add this for debugging
-
-          if (response.data && response.data.length === 0) {
-            setIsLoading(false);
-            return;
-          }
-
-          const transformedData = response.data.map((birthday) => ({
-            id: birthday.id,
-            name: birthday.name,
-            nickname: birthday.nickname,
-            date: birthday.birth_date,
-            zodiac: birthday.zodiac,
-            photo: birthday.photo_url || "/images/default.jpg",
-            giftIdeas: birthday.gift_ideas,
-            hobbies: birthday.hobbies,
-            favoriteColor: birthday.favorite_color,
-            notes: birthday.notes,
-            relationship: birthday.relationship,
-            personalizedMessage: birthday.personalized_message,
-          }));
-
-          setBirthdays(transformedData);
-          setIsLoading(false);
-          setShowWelcome(true);
+          const data = await getBirthdays(user.id);
+          setBirthdays(data);
         } catch (error) {
-          console.error("Full error details:", error);
-          console.error("Error response data:", error.response?.data);
+          console.error("Error fetching birthdays:", error);
+        } finally {
           setIsLoading(false);
         }
       };
-
-      fetchBirthdays();
+      fetchData();
     }
   }, [user]);
 
@@ -212,6 +182,9 @@ function App() {
           errorMessage;
       }
       throw new Error(errorMessage);
+    }
+    finally{
+      navigate("/", { replace: true });
     }
   };
 

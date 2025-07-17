@@ -28,6 +28,7 @@ const relationships = [
 
 const AddBirthday = ({ addBirthday, onSuccess }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -45,7 +46,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
   const notesInput = useRef();
   const fileInput = useRef();
   const phoneNumberInput = useRef();
-
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -127,8 +127,8 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     }
 
     try {
-      await addBirthday(formData);
-      if (onSuccess) onSuccess();
+      await addBirthday(formData, user.id);
+      navigate("/"); // Simple redirect after success
     } catch (error) {
       setError(error.message || "Failed to save birthday");
     } finally {
