@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AddBirthday.css";
-import { useAuth } from "./AuthContext";
 
 const zodiacSigns = [
   "Aries",
@@ -29,7 +28,7 @@ const relationships = [
 
 const AddBirthday = ({ addBirthday, onSuccess }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { addBirthday } = useBirthdays(); // Or your API call function
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -128,12 +127,13 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     }
 
     try {
-      await addBirthday(formData, user.id);
-      navigate("/"); // Simple redirect after success
+      await addBirthday(formData);
+      if (onSuccess) onSuccess();
     } catch (error) {
       setError(error.message || "Failed to save birthday");
     } finally {
       setIsSubmitting(false);
+      navigate("/");
     }
   };
 

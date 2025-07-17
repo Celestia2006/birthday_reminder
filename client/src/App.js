@@ -16,8 +16,6 @@ import Login from "./components/Login";
 import Signup from "./components/SignUp";
 import { useAuth } from "./components/AuthContext";
 import axios from "axios";
-import { getBirthdays } from "./api/api";
-
 
 function App() {
   const navigate = useNavigate();
@@ -29,17 +27,48 @@ function App() {
   // Fetch birthdays from database
   useEffect(() => {
     if (user) {
-      const fetchData = async () => {
+      // In App.js, modify the fetchBirthdays function
+      const fetchBirthdays = async () => {
         try {
-          const data = await getBirthdays(user.id);
-          setBirthdays(data);
+          console.log("Current user:", user); // Add this to verify user data
+          const response = await axios.get("/api/birthdays", {
+            headers: {
+              "user-id": user.id, // Explicitly send user ID
+            },
+          });
+          console.log("Fetched birthdays:", response.data); // Add this for debugging
+
+          if (response.data && response.data.length === 0) {
+            setIsLoading(false);
+            return;
+          }
+
+          const transformedData = response.data.map((birthday) => ({
+            id: birthday.id,
+            name: birthday.name,
+            nickname: birthday.nickname,
+            date: birthday.birth_date,
+            zodiac: birthday.zodiac,
+            photo: birthday.photo_url || "/images/default.jpg",
+            giftIdeas: birthday.gift_ideas,
+            hobbies: birthday.hobbies,
+            favoriteColor: birthday.favorite_color,
+            notes: birthday.notes,
+            relationship: birthday.relationship,
+            personalizedMessage: birthday.personalized_message,
+          }));
+
+          setBirthdays(transformedData);
+          setIsLoading(false);
+          setShowWelcome(true);
         } catch (error) {
-          console.error("Error fetching birthdays:", error);
-        } finally {
+          console.error("Full error details:", error);
+          console.error("Error response data:", error.response?.data);
           setIsLoading(false);
         }
       };
-      fetchData();
+
+      fetchBirthdays();
     }
   }, [user]);
 
