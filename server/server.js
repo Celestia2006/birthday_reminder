@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const app = express();
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
@@ -9,14 +8,17 @@ const { Pool } = require("pg");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// Initialize Cloudinary
+// Initialize express app
+const app = express();
+
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Fix 1: Remove duplicate CloudinaryStorage configuration
+// Configure file storage with Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -28,11 +30,11 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({
-  storage: storage, // Fix 2: Use the single storage instance
-  limits: { fileSize: 2 * 1024 * 1024 },
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 });
 
-// Middleware setup
+// Middleware
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -43,7 +45,10 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Database connection
+// Serve static files from React app
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+// PostgreSQL connection pool
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -56,7 +61,7 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-// Test connection
+// Verify database connection
 async function testConnection() {
   try {
     const client = await pool.connect();
@@ -69,13 +74,10 @@ async function testConnection() {
 }
 testConnection();
 
-// Authentication middleware
 const checkLoggedIn = (req, res, next) => {
   const userId = req.headers["user-id"];
-  console.log(`[DEBUG] Authentication check - user-id header: ${userId}`);
 
   if (!userId) {
-    console.log("[DEBUG] No user-id header found - rejecting request");
     return res.status(401).json({
       success: false,
       error: "Not logged in",
@@ -86,38 +88,98 @@ const checkLoggedIn = (req, res, next) => {
   next();
 };
 
-// Fix 3: Improved Cloudinary test endpoint
-app.get("/api/cloudinary-test", async (req, res) => {
+// Auth Endpoints (unchanged from your original)
+app.post("/api/auth/login", async (req, res) => {
   try {
-    // Using a valid test image URL
-    const result = await cloudinary.uploader.upload(
-      "https://res.cloudinary.com/demo/image/upload/sample.jpg",
-      { folder: "birthday-reminder-test" }
+    const { username, password } = req.body;
+    const { rows } = await pool.query(
+      "SELECT id, username FROM users WHERE username = $1 AND password = $2",
+      [username, password]
     );
+
+    if (rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
     res.json({
       success: true,
-      url: result.secure_url,
-      public_id: result.public_id,
+      userId: rows[0].id,
+      username: rows[0].username,
     });
   } catch (err) {
-    console.error("Cloudinary test error:", err);
+    console.error("Login error:", err);
     res.status(500).json({
       success: false,
-      error: err.message,
+      message: "Login failed",
     });
   }
 });
 
-// Fix 4: Phone number processing in POST/PUT endpoints
-const processPhoneNumber = (phone) => {
-  const digits = String(phone).replace(/\D/g, "");
-  if (digits.length !== 10) {
-    throw new Error("Phone number must be 10 digits");
-  }
-  return digits;
-};
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { username, password, email } = req.body;
 
-// Birthdays endpoints with fixes
+    if (!username || !password || !email) {
+      return res.status(400).json({
+        success: false,
+        error: "All fields are required",
+      });
+    }
+
+    const { rows: existing } = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: "Username or email already exists",
+      });
+    }
+
+    const {
+      rows: [user],
+    } = await pool.query(
+      "INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id",
+      [username, password, email]
+    );
+
+    res.status(201).json({
+      success: true,
+      userId: user.id,
+      username,
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Registration failed",
+    });
+  }
+});
+
+// Protected API endpoints with Cloudinary integration
+app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT *, EXTRACT(YEAR FROM age(birth_date)) AS age 
+       FROM birthdays WHERE user_id = $1`,
+      [req.userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch birthdays:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch birthdays",
+    });
+  }
+});
+
 app.post(
   "/api/birthdays",
   checkLoggedIn,
@@ -133,13 +195,17 @@ app.post(
       }
 
       // Process phone number
-      const phoneDigits = processPhoneNumber(req.body.phone_number);
+      const phoneDigits = String(req.body.phone_number).replace(/\D/g, "");
+      if (phoneDigits.length !== 10) {
+        return res.status(400).json({
+          success: false,
+          error: "Phone number must be 10 digits",
+        });
+      }
 
-      // Process photo upload
+      // Process Cloudinary upload if photo exists
       let photoUrl = null;
       if (req.file) {
-        console.log("Uploading file to Cloudinary...");
-        // Fix 5: Proper Cloudinary upload handling
         const result = await cloudinary.uploader.upload(req.file.path);
         photoUrl = result.secure_url;
         // Clean up the temporary file
@@ -180,16 +246,10 @@ app.post(
       });
     } catch (err) {
       console.error("Error creating birthday:", err);
-
       // Clean up if there was a file upload
       if (req.file && req.file.path) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (cleanupErr) {
-          console.error("Error cleaning up file:", cleanupErr);
-        }
+        fs.unlinkSync(req.file.path);
       }
-
       res.status(500).json({
         success: false,
         error: err.message.includes("Phone number")
@@ -200,11 +260,159 @@ app.post(
   }
 );
 
-// Fix 6: Remove duplicate server startup
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔍 Test Cloudinary config: /api/cloudinary-test`);
+app.put(
+  "/api/birthdays/:id",
+  checkLoggedIn,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const client = await pool.connect();
+
+      try {
+        await client.query("BEGIN");
+
+        // Check if record exists
+        const {
+          rows: [existing],
+        } = await client.query(
+          "SELECT * FROM birthdays WHERE id = $1 AND user_id = $2",
+          [id, req.userId]
+        );
+
+        if (!existing) {
+          if (req.file) fs.unlinkSync(req.file.path);
+          return res.status(404).json({
+            success: false,
+            error: "Birthday not found",
+          });
+        }
+
+        // Handle photo update if new file uploaded
+        let photoUrl = existing.photo_url;
+        if (req.file) {
+          // Delete old photo from Cloudinary if exists
+          if (photoUrl) {
+            const publicId = photoUrl.split("/").pop().split(".")[0];
+            await cloudinary.uploader.destroy(publicId);
+          }
+          // Upload new photo
+          const result = await cloudinary.uploader.upload(req.file.path);
+          photoUrl = result.secure_url;
+          fs.unlinkSync(req.file.path); // Clean up temp file
+        }
+
+        // Update record
+        const {
+          rows: [updated],
+        } = await client.query(
+          `UPDATE birthdays SET
+            name = COALESCE($1, name),
+            nickname = COALESCE($2, nickname),
+            birth_date = COALESCE($3, birth_date),
+            relationship = COALESCE($4, relationship),
+            zodiac = COALESCE($5, zodiac),
+            personalized_message = COALESCE($6, personalized_message),
+            favorite_color = COALESCE($7, favorite_color),
+            hobbies = COALESCE($8, hobbies),
+            gift_ideas = COALESCE($9, gift_ideas),
+            notes = COALESCE($10, notes),
+            photo_url = COALESCE($11, photo_url),
+            phone_number = COALESCE($12, phone_number)
+          WHERE id = $13
+          RETURNING *`,
+          [
+            req.body.name || null,
+            req.body.nickname || null,
+            req.body.birth_date || null,
+            req.body.relationship || null,
+            req.body.zodiac || null,
+            req.body.personalized_message || null,
+            req.body.favorite_color || null,
+            req.body.hobbies || null,
+            req.body.gift_ideas || null,
+            req.body.notes || null,
+            photoUrl || null,
+            req.body.phone_number || existing.phone_number,
+            id,
+          ]
+        );
+
+        await client.query("COMMIT");
+        res.json({
+          success: true,
+          data: updated,
+        });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        if (req.file) fs.unlinkSync(req.file.path);
+        throw err;
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error("Error updating birthday:", err);
+      res.status(500).json({
+        success: false,
+        error: "Failed to update birthday",
+        message: err.message,
+      });
+    }
+  }
+);
+
+app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      // Check if record exists and get photo info
+      const {
+        rows: [existing],
+      } = await client.query(
+        "SELECT photo_url FROM birthdays WHERE id = $1 AND user_id = $2",
+        [id, req.userId]
+      );
+
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          error: "Birthday not found",
+        });
+      }
+
+      // Delete photo from Cloudinary if exists
+      if (existing.photo_url) {
+        const publicId = existing.photo_url.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
+      }
+
+      // Delete record
+      await client.query("DELETE FROM birthdays WHERE id = $1", [id]);
+      await client.query("COMMIT");
+
+      res.status(204).end();
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error("Error deleting birthday:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete birthday",
+    });
+  }
+});
+
+// Handle React routing - return all requests to React app
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 });
 
 // Error handling middleware
@@ -215,4 +423,10 @@ app.use((err, req, res, next) => {
     error: "Server error",
     message: err.message,
   });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔍 Test endpoint: /api/debug-test`);
 });
