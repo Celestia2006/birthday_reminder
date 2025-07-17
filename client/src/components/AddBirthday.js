@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AddBirthday.css";
+import { useAuth } from "./components/AuthContext";
 
 const zodiacSigns = [
   "Aries",
