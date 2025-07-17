@@ -14,12 +14,17 @@ const calculateAge = (birthDate) => {
   const monthDiff = today.getMonth() - birthDateObj.getMonth();
   const dayDiff = today.getDate() - birthDateObj.getDate();
 
-  // If birthday hasn't occurred yet this year OR is today
   if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
     age--;
   }
 
   return age;
+};
+
+const formatPhoneNumber = (phone) => {
+  if (!phone) return null;
+  // Remove country code if it's Indian number (91)
+  return phone.replace(/^91/, "");
 };
 
 const BirthdayDetail = ({ birthdays, onDelete }) => {
@@ -31,13 +36,8 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
     return <div className="birthday-detail-container">Birthday not found</div>;
   }
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const handleEdit = () => {
-    navigate(`/edit-birthday/${birthday.id}`);
-  };
+  const handleBack = () => navigate(-1);
+  const handleEdit = () => navigate(`/edit-birthday/${birthday.id}`);
 
   const handleDelete = async () => {
     if (
@@ -53,14 +53,13 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
     }
   };
 
-  // Calculate days until birthday
   const calculateDaysUntilBirthday = () => {
     if (!birthday.date) return null;
 
     const today = new Date();
     const currentYear = today.getFullYear();
     const birthDate = new Date(birthday.date);
-    const nextBirthday = new Date(
+    let nextBirthday = new Date(
       currentYear,
       birthDate.getMonth(),
       birthDate.getDate()
@@ -70,25 +69,23 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
       nextBirthday.setFullYear(currentYear + 1);
     }
 
-    const diffTime = nextBirthday - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
   };
 
   const daysUntilBirthday = calculateDaysUntilBirthday();
+  const formattedPhone = formatPhoneNumber(birthday.phone_number);
 
   return (
     <div className="birthday-detail-container">
       <div className="birthday-detail-card">
-        {/* Name and Nickname at the very top */}
         <div className="detail-header">
           <h2>{birthday.name}</h2>
           {birthday.nickname && <p className="nickname">{birthday.nickname}</p>}
         </div>
 
-        {/* Oval Image centered below the header */}
         <div className="detail-image-wrapper">
           <img
-            src={birthday.photo}
+            src={birthday.photo || "/images/default.jpeg"}
             alt={birthday.name}
             className="detail-image"
             onError={(e) => {
@@ -98,7 +95,6 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           />
         </div>
 
-        {/* All details in a single vertical column */}
         <div className="detail-content">
           <div className="detail-section">
             <h3>🎉 Birthday</h3>
@@ -119,6 +115,21 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
+          {formattedPhone && (
+            <div className="detail-section">
+              <h3>📱 Phone Number</h3>
+              <p>{formattedPhone}</p>
+              <a
+                href={`https://wa.me/91${formattedPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="whatsapp-link"
+              >
+                Send WhatsApp Message
+              </a>
+            </div>
+          )}
+
           {birthday.zodiac && (
             <div className="detail-section">
               <h3>♋ Zodiac</h3>
@@ -133,10 +144,10 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
-          {birthday.giftIdeas && (
+          {birthday.favoriteColor && (
             <div className="detail-section">
-              <h3>🎁 Gift Ideas</h3>
-              <p>{birthday.giftIdeas}</p>
+              <h3>🎨 Favorite Color</h3>
+              <p>{birthday.favoriteColor}</p>
             </div>
           )}
 
@@ -147,10 +158,10 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             </div>
           )}
 
-          {birthday.favoriteColor && (
+          {birthday.giftIdeas && (
             <div className="detail-section">
-              <h3>🎨 Favorite Color</h3>
-              <p>{birthday.favoriteColor}</p>
+              <h3>🎁 Gift Ideas</h3>
+              <p>{birthday.giftIdeas}</p>
             </div>
           )}
 
@@ -167,10 +178,8 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
               <p>{birthday.notes}</p>
             </div>
           )}
-          <div className="notes-gap"></div>
         </div>
 
-        {/* Buttons at the very bottom */}
         <div className="button-container">
           <button onClick={handleEdit} className="styled-button edit">
             Edit
