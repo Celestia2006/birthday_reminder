@@ -28,7 +28,6 @@ const relationships = [
 
 const AddBirthday = ({ addBirthday, onSuccess }) => {
   const navigate = useNavigate();
-  const { addBirthday } = useBirthdays(); // Or your API call function
   const [previewImage, setPreviewImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
