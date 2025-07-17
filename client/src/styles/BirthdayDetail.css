@@ -135,3 +135,9 @@
 .notes-gap{
   margin-bottom: 30px;
 }
+
+.detail-content {
+  width: 100%;
+  padding: 0 30px; /* Matches other content padding */
+  margin-bottom: 20px;
+}
