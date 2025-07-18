@@ -217,11 +217,6 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
               <p>{birthday.notes}</p>
             </div>
           )}
-          {/* Add this debug section */}
-          <div className="debug-section">
-            <h3>Debug Info</h3>
-            <pre>{JSON.stringify(birthday, null, 2)}</pre>
-          </div>
           <div className="notes-gap"></div>
         </div>
 
