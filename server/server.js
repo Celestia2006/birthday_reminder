@@ -237,19 +237,12 @@ app.post(
       // Process phone number - more flexible validation
       const phoneDigits = String(req.body.phone_number).replace(/\D/g, "");
 
-      // WhatsApp requires numbers in international format (with country code)
-      // For demo purposes, we'll accept 10 digits (assuming India +91)
-      // But store with country code for future WhatsApp integration
-      let whatsappReadyNumber;
-      if (phoneDigits.length === 10) {
-        whatsappReadyNumber = `91${phoneDigits}`; // Default to India code
-      } else if (phoneDigits.length >= 11 && phoneDigits.length <= 15) {
-        whatsappReadyNumber = phoneDigits; // Assume already has country code
-      } else {
+      
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
         return res.status(400).json({
           success: false,
-          error: "Phone number must be 10 digits (or include country code)",
-          example: "9876543210 or 919876543210",
+          error: "Phone number must be 10-15 digits",
+          example: "9876543210 or +919876543210",
         });
       }
 

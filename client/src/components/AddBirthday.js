@@ -165,14 +165,17 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             </div>
             <div className="form-group">
               <label htmlFor="phone">Phone Number* (for notifications)</label>
+              // In the phone number input field, update the pattern and add
+              clearer validation
               <input
                 type="tel"
                 id="phone"
                 name="phone_number"
                 required
                 ref={phoneNumberInput}
-                placeholder="+1234567890"
-                pattern="^\+?[0-9\s\-\(\)]{10,20}$"
+                placeholder="9876543210 or +919876543210"
+                pattern="^(\+?\d{10,15})$"
+                title="Enter 10 digits (e.g., 9876543210) or international format (e.g., +919876543210)"
               />
             </div>
           </div>

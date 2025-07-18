@@ -2,6 +2,18 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/BirthdayDetail.css";
 
+const formatPhoneNumber = (num) => {
+  if (!num) return "";
+  const str = num.toString().replace(/\D/g, "");
+
+  // Format with country code
+  if (str.length === 10) return `+91 ${str.slice(0, 5)} ${str.slice(5)}`;
+  if (str.length === 12 && str.startsWith("91")) {
+    return `+${str.slice(0, 2)} ${str.slice(2, 7)} ${str.slice(7)}`;
+  }
+  return `+${str}`;
+};
+
 const calculateAge = (birthDate) => {
   if (!birthDate) return 0;
 
@@ -41,8 +53,9 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
     let cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
 
     // Add country code if missing (assuming 10 digits means India)
+    let whatsappNumber = cleanedPhone;
     if (cleanedPhone.length === 10) {
-      cleanedPhone = `91${cleanedPhone}`;
+      whatsappNumber = `91${cleanedPhone}`; // Default to India code
     }
 
     const message =
@@ -166,7 +179,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           {birthday.relationship && (
             <div className="detail-section">
               <h3>📞 Contact</h3>
-              <p>+{birthday.phone_number}</p>
+              <p>{formatPhoneNumber(birthday.phone_number)}</p>
             </div>
           )}
 
