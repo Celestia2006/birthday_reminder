@@ -32,41 +32,36 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    // Debug: Check what's actually in the birthday object
-    console.log("Birthday object:", birthday);
-    console.log("Phone number:", birthday.phone_number);
+    // Try different possible phone number field names
+    const phoneNumber =
+      birthday.phone_number || birthday.phoneNumber || birthday.phone;
 
-    if (!birthday.phone_number || birthday.phone_number.trim() === "") {
-      alert("Phone number is missing for this contact");
-      return;
-    }
+    console.log("All birthday data:", birthday);
+    console.log("Phone number fields:", {
+      phone_number: birthday.phone_number,
+      phoneNumber: birthday.phoneNumber,
+      phone: birthday.phone,
+    });
 
-    // Clean the phone number (remove all non-digit characters)
-    const cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
-
-    // Debug: Check cleaned phone number
-    console.log("Cleaned phone:", cleanedPhone);
-
-    // Check if number is valid (10 digits for India)
-    if (cleanedPhone.length !== 10) {
+    if (!phoneNumber || phoneNumber.trim() === "") {
       alert(
-        `Please enter a 10-digit phone number (current: ${cleanedPhone.length} digits)`
+        `Phone number is missing. Available fields: ${Object.keys(
+          birthday
+        ).join(", ")}`
       );
       return;
     }
 
-    // Add India country code (+91) if not present
-    const whatsappNumber = `91${cleanedPhone}`; // 918978154767
+    // Clean the phone number
+    const cleanedPhone = phoneNumber.toString().replace(/\D/g, "");
 
-    const message =
-      `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
-      `Wishing you a wonderful day!\n\n` +
-      `${
-        birthday.personalized_message ||
-        "May your year be filled with happiness!"
-      }\n\n` +
-      `From: Your Friend`;
+    if (cleanedPhone.length !== 10) {
+      alert(`Please enter a 10-digit phone number (current: ${cleanedPhone})`);
+      return;
+    }
 
+    const whatsappNumber = `91${cleanedPhone}`;
+    const message = `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\nWishing you a wonderful day!`;
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       message
     )}`;
@@ -179,7 +174,11 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           {birthday.relationship && (
             <div className="detail-section">
               <h3>📞 Contact</h3>
-              <p>{birthday.phone_number}</p>
+              <p>
+                {birthday.phone_number ||
+                  birthday.phoneNumber ||
+                  birthday.phone}
+              </p>
             </div>
           )}
 
@@ -217,6 +216,11 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
               <p>{birthday.notes}</p>
             </div>
           )}
+          {/* Add this debug section */}
+          <div className="debug-section">
+            <h3>Debug Info</h3>
+            <pre>{JSON.stringify(birthday, null, 2)}</pre>
+          </div>
           <div className="notes-gap"></div>
         </div>
 
