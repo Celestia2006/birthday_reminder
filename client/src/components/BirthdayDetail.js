@@ -52,7 +52,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
     return found ? { ...found } : null;
   });
 
-  uuseEffect(() => {
+  useEffect(() => {
     if (!location.state?.updatedBirthday) {
       const found = birthdays.find((b) => b.id === parseInt(id));
       setBirthday(found ? { ...found } : null);
