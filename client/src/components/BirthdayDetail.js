@@ -31,6 +31,28 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
     return <div className="birthday-detail-container">Birthday not found</div>;
   }
 
+  const handleWhatsAppWish = () => {
+    // Generate the WhatsApp message
+    const message = generateWhatsAppMessage(birthday);
+    const phoneNumber = birthday.phone_number; // Ensure this includes country code
+
+    // Open WhatsApp with the pre-filled message
+    window.open(
+      `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
+  };
+
+  const generateWhatsAppMessage = (bday) => {
+    const age = calculateAge(bday.date) + 1;
+    return (
+      `🎉 *Happy Birthday ${bday.name}!* 🎉\n\n` +
+      `Wishing you a wonderful ${age}th birthday!\n\n` +
+      `${bday.personalized_message || "May your day be filled with joy!"}\n\n` +
+      `From: Your Friend`
+    );
+  };
+
   const handleBack = () => {
     navigate(-1);
   };
@@ -183,6 +205,12 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             className="styled-button delete-button"
           >
             Delete
+          </button>
+          <button
+            onClick={handleWhatsAppWish}
+            className="styled-button whatsapp-button"
+          >
+            Wish them now!
           </button>
         </div>
       </div>

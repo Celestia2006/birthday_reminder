@@ -1,0 +1,37 @@
+/* BirthdayWish.css */
+.birthday-wish-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #f7f7f7;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.wish-preview {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  white-space: pre-line;
+}
+
+.whatsapp-button {
+  background: #25D366;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.whatsapp-button:hover {
+  background: #128C7E;
+}
+
+.whatsapp-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}

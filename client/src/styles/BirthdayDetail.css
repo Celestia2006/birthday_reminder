@@ -143,3 +143,13 @@
   padding: 0 30px; /* Matches other content padding */
   margin-bottom: 20px;
 }
+
+/* BirthdayDetail.css */
+.whatsapp-button {
+  background-color: #25D366 !important;
+  border-color: #25D366 !important;
+}
+
+.whatsapp-button:hover {
+  background-color: #128C7E !important;
+}
