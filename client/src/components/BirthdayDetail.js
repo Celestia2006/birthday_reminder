@@ -185,7 +185,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           {birthday.relationship && (
             <div className="detail-section">
               <h3>📞 Contact</h3>
-              <p>{formatPhoneNumber(birthday.phone_number)}</p>
+              <p>{birthday.phone_number}</p>
             </div>
           )}
 
