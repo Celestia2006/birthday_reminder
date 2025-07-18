@@ -32,17 +32,26 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    if (!birthday.phone_number) {
+    // Debug: Check what's actually in the birthday object
+    console.log("Birthday object:", birthday);
+    console.log("Phone number:", birthday.phone_number);
+
+    if (!birthday.phone_number || birthday.phone_number.trim() === "") {
       alert("Phone number is missing for this contact");
       return;
     }
 
     // Clean the phone number (remove all non-digit characters)
-    const cleanedPhone = birthday.phone_number.replace(/\D/g, "");
+    const cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
+
+    // Debug: Check cleaned phone number
+    console.log("Cleaned phone:", cleanedPhone);
 
     // Check if number is valid (10 digits for India)
     if (cleanedPhone.length !== 10) {
-      alert("Please enter a 10-digit phone number");
+      alert(
+        `Please enter a 10-digit phone number (current: ${cleanedPhone.length} digits)`
+      );
       return;
     }
 
