@@ -39,6 +39,12 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   const navigate = useNavigate();
   const birthday = birthdays.find((b) => b.id === parseInt(id));
 
+  console.log("--- BIRTHDAY DETAIL PROPS ---");
+  console.log("All birthdays:", birthdays);
+  console.log("Found birthday:", birthday);
+  console.log("Phone number in component:", birthday?.phone_number);
+  console.log("Type of phone number:", typeof birthday?.phone_number);
+
   if (!birthday) {
     return <div className="birthday-detail-container">Birthday not found</div>;
   }

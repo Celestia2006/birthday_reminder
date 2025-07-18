@@ -90,6 +90,11 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     setIsSubmitting(true);
     setError("");
 
+    console.log("--- FORM SUBMISSION ---");
+    console.log("Phone number from input:", phoneNumberInput.current.value);
+    console.log("Type of phone number:", typeof phoneNumberInput.current.value);
+
+
     // Basic validation
     if (
       !nameInput.current.value ||

@@ -198,6 +198,10 @@ app.get("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
       [id, req.userId]
     );
 
+    console.log("Database result:", rows[0]);
+    console.log("Phone number from DB:", rows[0]?.phone_number);
+    console.log("Type of phone number from DB:", typeof rows[0]?.phone_number);
+
     if (rows.length === 0) {
       return res.status(404).json({
         success: false,
@@ -224,6 +228,8 @@ app.post(
   checkLoggedIn,
   upload.single("photo"),
   async (req, res) => {
+    console.log("--- RAW REQUEST BODY ---");
+    console.log(req.body); // Log entire request body
     let client;
     try {
       // Validate required fields
@@ -233,12 +239,12 @@ app.post(
           error: "Name, birth date, and phone number are required",
         });
       }
-      console.log("Phone Number: ", req.body.phone_number);
+      console.log("Raw phone_number from request:", req.body.phone_number);
+      console.log("Type of phone_number:", typeof req.body.phone_number);
 
       // Process phone number - more flexible validation
       const phoneDigits = String(req.body.phone_number).replace(/\D/g, "");
 
-      
       if (phoneDigits.length < 10 || phoneDigits.length > 15) {
         return res.status(400).json({
           success: false,
