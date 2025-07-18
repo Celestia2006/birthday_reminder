@@ -33,6 +33,7 @@
     text-decoration: none;
     font-family: 'Jersey', sans-serif;
     font-size : 1.5rem;
+    background-color: #76078f;
   }
   
   .react-calendar__tile {
