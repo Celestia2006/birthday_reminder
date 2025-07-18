@@ -38,14 +38,24 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [birthday, setBirthday] = useState(
-    location.state?.updatedBirthday ||
-      birthdays.find((b) => b.id === parseInt(id))
-  );
 
-  useEffect(() => {
+  const [birthday, setBirthday] = useState(() => {
+    // Check for updated data in navigation state first
+    if (location.state?.updatedBirthday) {
+      return {
+        ...location.state.updatedBirthday,
+        date: new Date(location.state.updatedBirthday.date).toISOString(),
+      };
+    }
+    // Fall back to finding in birthdays list
+    const found = birthdays.find((b) => b.id === parseInt(id));
+    return found ? { ...found } : null;
+  });
+
+  uuseEffect(() => {
     if (!location.state?.updatedBirthday) {
-      setBirthday(birthdays.find((b) => b.id === parseInt(id)));
+      const found = birthdays.find((b) => b.id === parseInt(id));
+      setBirthday(found ? { ...found } : null);
     }
   }, [birthdays, id, location.state]);
 
