@@ -134,12 +134,14 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
     setError("");
 
     try {
-      await updateBirthday(parseInt(id), {
+      // Send the updated data and wait for the response
+      const updatedBirthday = await updateBirthday(parseInt(id), {
         ...formData,
-        // Ensure phone_number is properly formatted before sending
         phone_number: String(formData.phone_number).replace(/\D/g, ""),
       });
-      navigate(`/birthday/${id}`);
+
+      // Navigate to the updated birthday detail page
+      navigate(`/birthday/${id}`, { state: { updatedBirthday } });
     } catch (error) {
       setError(error.message || "Failed to update birthday");
     } finally {

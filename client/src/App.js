@@ -234,38 +234,33 @@ if (path.startsWith("/wish/")) {
         name: updatedData.name,
         nickname: updatedData.nickname,
         birth_date: updatedData.date,
+        relationship: updatedData.relationship,
         zodiac: updatedData.zodiac,
         photo_url: updatedData.photo,
-        gift_ideas: updatedData.giftIdeas,
-        hobbies: updatedData.hobbies,
-        favorite_color: updatedData.favoriteColor,
-        notes: updatedData.notes,
-        relationship: updatedData.relationship,
         personalized_message: updatedData.personalizedMessage,
-        phone_number: updatedData.phone_number, // Ensure phone number is included
+        favorite_color: updatedData.favoriteColor,
+        hobbies: updatedData.hobbies,
+        gift_ideas: updatedData.giftIdeas,
+        notes: updatedData.notes,
+        phone_number: updatedData.phone_number,
       };
 
       const response = await axios.put(`/api/birthdays/${id}`, dbBirthday);
 
-      // Update the birthday in state with transformed fields
-      setBirthdays(
-        birthdays.map((b) =>
-          b.id === id
-            ? {
-                ...response.data,
-                id: response.data.id,
-                date: response.data.birth_date,
-                photo: response.data.photo_url,
-                giftIdeas: response.data.gift_ideas,
-                favoriteColor: response.data.favorite_color,
-                personalizedMessage: response.data.personalized_message,
-                phone_number: response.data.phone_number, // Ensure phone number is included
-              }
-            : b
-        )
-      );
+      // Return the complete updated birthday data
+      return {
+        ...response.data,
+        id: response.data.id,
+        date: response.data.birth_date,
+        photo: response.data.photo_url,
+        giftIdeas: response.data.gift_ideas,
+        favoriteColor: response.data.favorite_color,
+        personalizedMessage: response.data.personalized_message,
+        phone_number: response.data.phone_number,
+      };
     } catch (error) {
       console.error("Error updating birthday:", error);
+      throw error;
     }
   };
 
