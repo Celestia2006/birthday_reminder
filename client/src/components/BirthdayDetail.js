@@ -55,28 +55,28 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
       return;
     }
 
-    // Clean the phone number (remove all non-digit characters)
-    let cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
+    // Clean the phone number
+    const cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
+    const whatsappNumber = cleanedPhone.startsWith("91")
+      ? cleanedPhone
+      : `91${cleanedPhone}`;
 
-    // Add country code if missing (assuming 10 digits means India)
-    let whatsappNumber = cleanedPhone;
-    if (cleanedPhone.length === 10) {
-      whatsappNumber = `91${cleanedPhone}`; // Default to India code
-    }
+    // Create the birthday card URL
+    const birthdayCardUrl = `${window.location.origin}/birthday/${birthday.id}`;
 
     const message =
       `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
-      `Wishing you a wonderful day!\n\n` +
+      `Wishing you a wonderful day filled with joy and happiness!\n\n` +
       `${
         birthday.personalized_message ||
-        "May your year be filled with happiness!"
+        "You're amazing and we're so grateful to have you in our lives!"
       }\n\n` +
-      `From: Your Friend`;
+      `Check out your special birthday card here: ${birthdayCardUrl}\n\n` +
+      `From: Your Friends & Family`;
 
-    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       message
     )}`;
-
     window.open(whatsappUrl, "_blank");
   };
 
