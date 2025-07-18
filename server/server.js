@@ -280,7 +280,7 @@ app.post(
         [
           req.body.name.substring(0, 100),
           req.body.nickname?.substring(0, 100) || null,
-          whatsappReadyNumber, // Using the formatted number
+          phoneDigits, // Using the formatted number
           req.body.birth_date,
           req.body.relationship?.substring(0, 50) || "Friend",
           req.body.zodiac?.substring(0, 20) || null,
