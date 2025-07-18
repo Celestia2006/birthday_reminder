@@ -264,6 +264,7 @@
 /* Add this new rule to style birthday tiles */
 .react-calendar__tile.has-birthday {
   background: rgba(83, 15, 111, 0.7) !important; /* Darker purple with transparency */
+  border: solid 2px #fef4b5; /* Yellow border */
   position: relative;
   z-index: 1;
 }
