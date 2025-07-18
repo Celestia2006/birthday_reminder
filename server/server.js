@@ -233,6 +233,7 @@ app.post(
           error: "Name, birth date, and phone number are required",
         });
       }
+      console.log("Phone Number: ", req.body.phone_number);
 
       // Process phone number - more flexible validation
       const phoneDigits = String(req.body.phone_number).replace(/\D/g, "");
@@ -409,7 +410,7 @@ app.put(
           id,
         ]
       );
-
+      console.log("Phone Number: ", req.body.phone_number);
       await client.query("COMMIT");
       res.json({
         success: true,
