@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import WhatsAppService from "../services/WhatsAppService";
 import "../styles/BirthdayWish.css";
 
 const BirthdayWish = ({ birthdays, isAdminView = false }) => {
@@ -29,14 +28,19 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
     return age;
   };
 
-  const handleScheduleMessage = () => {
-    const message = generateMessage(birthday);
-    whatsappService.scheduleBirthdayMessage(
-      birthday.phone_number,
-      message,
-      birthday.date
-    );
-    setIsScheduled(true);
+  const handleScheduleMessage = async () => {
+    try {
+      const response = await axios.post("/api/send-whatsapp", {
+        phone_number: birthday.phone_number,
+        message: generateMessage(birthday),
+        date: birthday.date,
+      });
+      if (response.data.success) {
+        setIsScheduled(true);
+      }
+    } catch (error) {
+      console.error("Failed to schedule message:", error);
+    }
   };
 
   const generateMessage = (bday) => {

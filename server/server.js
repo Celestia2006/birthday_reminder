@@ -1,3 +1,4 @@
+import WhatsAppService from "../services/WhatsAppService";
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -505,6 +506,20 @@ app.delete("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
     });
   } finally {
     if (client) client.release();
+  }
+});
+
+app.post("/api/send-whatsapp", checkLoggedIn, async (req, res) => {
+  try {
+    const whatsappService = new WhatsAppService();
+    await whatsappService.scheduleBirthdayMessage(
+      req.body.phone_number,
+      req.body.message,
+      req.body.date
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
