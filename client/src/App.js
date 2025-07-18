@@ -28,15 +28,14 @@ function App() {
   const [wishId, setWishId] = useState(null);
 
   useEffect(() => {
-    if (user) {
+const path = window.location.pathname;
+if (path.startsWith("/wish/")) {
+  const id = path.split("/")[2];
+  setIsWishLink(true);
+  setWishId(id);
+}
 
-      const path = window.location.pathname;
-      if (path.startsWith("/wish/")) {
-        const id = path.split("/")[2];
-        setIsWishLink(true);
-        setWishId(id);
-      }
-  
+    if (user) {
       const fetchBirthdays = async () => {
         try {
           console.log("Current user:", user); // Add this to verify user data
@@ -70,7 +69,9 @@ function App() {
 
           setBirthdays(transformedData);
           setIsLoading(false);
-          setShowWelcome(true);
+          if (!path.startsWith("/wish/")) {
+            setShowWelcome(true);
+          }
         } catch (error) {
           console.error("Full error details:", error);
           console.error("Error response data:", error.response?.data);
@@ -306,6 +307,15 @@ function App() {
       navigate(isWishLink ? `/wish/${wishId}` : "/");
     }, 2000);
   };
+
+  if (authLoading) {
+    return (
+      <div className="app-wrapper">
+        <StarsBackground />
+        <div className="loading-container">Loading...</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
