@@ -166,7 +166,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           {birthday.relationship && (
             <div className="detail-section">
               <h3>📞 Contact</h3>
-              <p>+{birthday.phone_number.toString().replace(/^91/, "")}</p>
+              <p>+{birthday.phone_number}</p>
             </div>
           )}
 
