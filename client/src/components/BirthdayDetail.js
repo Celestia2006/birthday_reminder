@@ -50,7 +50,11 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   });
 
   useEffect(() => {
-    if (!location.state?.updatedBirthday) {
+    // If we have updated data in state, use that
+    if (location.state?.updatedBirthday) {
+      setBirthday(location.state.updatedBirthday);
+    } else {
+      // Otherwise find in the birthdays list
       const found = birthdays.find((b) => b.id === parseInt(id));
       setBirthday(found ? { ...found } : null);
     }
