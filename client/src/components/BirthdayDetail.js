@@ -32,38 +32,37 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    // Validate phone number
-    if (!birthday.phone_number?.trim()) {
-      alert("This contact doesn't have a valid phone number");
+    if (!birthday.phone_number) {
+      alert("Phone number is missing for this contact");
       return;
     }
 
-    // Format phone number (remove spaces, dashes, etc.)
-    let phoneNumber = birthday.phone_number.replace(/[^\d]/g, "");
+    // Clean the phone number (remove all non-digit characters)
+    const cleanedPhone = birthday.phone_number.replace(/\D/g, "");
 
-    // Add country code if missing (assuming Indian numbers by default)
-    if (phoneNumber.length === 10) {
-      phoneNumber = `91${phoneNumber}`; // India country code
-    } else if (phoneNumber.length < 10) {
-      alert("Phone number is too short");
+    // Check if number is valid (10 digits for India)
+    if (cleanedPhone.length !== 10) {
+      alert("Please enter a 10-digit phone number");
       return;
     }
 
-    // Generate message with improved formatting
+    // Add India country code (+91) if not present
+    const whatsappNumber = `91${cleanedPhone}`; // 918978154767
+
     const message =
       `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
-      `Age: ${calculateAge(birthday.date) + 1}\n` +
-      `Relationship: ${birthday.relationship}\n\n` +
-      `${birthday.personalized_message || "Wishing you an amazing day!"}\n\n` +
-      `Sent via Birthday Reminder App`;
+      `Wishing you a wonderful day!\n\n` +
+      `${
+        birthday.personalized_message ||
+        "May your year be filled with happiness!"
+      }\n\n` +
+      `From: Your Friend`;
 
-    // Create WhatsApp URL
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       message
     )}`;
 
-    // Open in new tab
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    window.open(whatsappUrl, "_blank");
   };
 
   const handleBack = () => {
@@ -165,6 +164,13 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
             <div className="detail-section">
               <h3>💞 Relationship</h3>
               <p>{birthday.relationship}</p>
+            </div>
+          )}
+
+          {birthday.relationship && (
+            <div className="detail-section">
+              <h3>📞 Contact</h3>
+              <p>{birthday.phone_number}</p>
             </div>
           )}
 
