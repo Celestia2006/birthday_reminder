@@ -137,9 +137,10 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
       const updatedData = {
         ...formData,
         phone_number: String(formData.phone_number).replace(/\D/g, ""),
+        // Ensure date is in correct format for server
+        date: new Date(formData.date).toISOString(),
       };
 
-      // Get the updated birthday data from the response
       const updatedBirthday = await updateBirthday(parseInt(id), updatedData);
 
       // Navigate with the updated data

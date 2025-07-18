@@ -42,10 +42,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   const [birthday, setBirthday] = useState(() => {
     // Check for updated data in navigation state first
     if (location.state?.updatedBirthday) {
-      return {
-        ...location.state.updatedBirthday,
-        date: new Date(location.state.updatedBirthday.date).toISOString(),
-      };
+      return location.state.updatedBirthday;
     }
     // Fall back to finding in birthdays list
     const found = birthdays.find((b) => b.id === parseInt(id));
@@ -58,6 +55,17 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
       setBirthday(found ? { ...found } : null);
     }
   }, [birthdays, id, location.state]);
+
+  useEffect(() => {
+    if (birthday?.date && isNaN(new Date(birthday.date).getTime())) {
+      console.error("Invalid date detected:", birthday.date);
+      // Try to find a valid date from the birthdays list
+      const found = birthdays.find((b) => b.id === parseInt(id));
+      if (found) {
+        setBirthday({ ...found });
+      }
+    }
+  }, [birthday, birthdays, id]);
 
   if (!birthday) {
     return <div className="birthday-detail-container">Birthday not found</div>;
