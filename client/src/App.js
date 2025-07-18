@@ -22,11 +22,10 @@ function App() {
   const { user } = useAuth();
   const [birthdays, setBirthdays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(false); // Changed initial state to false
+  const [showWelcome, setShowWelcome] = useState(false); 
   const [isWishLink, setIsWishLink] = useState(false);
   const [wishId, setWishId] = useState(null);
 
-  // Fetch birthdays from database
   useEffect(() => {
     if (user) {
 
@@ -36,7 +35,7 @@ function App() {
         setIsWishLink(true);
         setWishId(id);
       }
-      // In App.js, modify the fetchBirthdays function
+  
       const fetchBirthdays = async () => {
         try {
           console.log("Current user:", user); // Add this to verify user data
@@ -96,7 +95,7 @@ function App() {
       })
       .map((bday) => ({
         ...bday,
-        turningAge: getAge(bday.date) + 1, // They'll be age+1 after today
+        turningAge: getAge(bday.date) + 1, 
         message: bday.personalizedMessage || `Happy Birthday ${bday.name}! 🎉`,
       }));
   };
