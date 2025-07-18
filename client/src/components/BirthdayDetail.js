@@ -50,34 +50,21 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    if (!birthday.phone_number) {
-      alert("Phone number is missing for this contact");
-      return;
-    }
-
-    // Clean the phone number
-    const cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
-    const whatsappNumber = cleanedPhone.startsWith("91")
-      ? cleanedPhone
-      : `91${cleanedPhone}`;
-
-    // Create the birthday card URL
-    const birthdayCardUrl = `${window.location.origin}/birthday/${birthday.id}`;
+    const whatsappNumber = `91${birthday.phone_number
+      .toString()
+      .replace(/\D/g, "")}`;
+    const wishUrl = `${window.location.origin}/wish/${birthday.id}`;
 
     const message =
       `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
-      `Wishing you a wonderful day filled with joy and happiness!\n\n` +
-      `${
-        birthday.personalized_message ||
-        "You're amazing and we're so grateful to have you in our lives!"
-      }\n\n` +
-      `Check out your special birthday card here: ${birthdayCardUrl}\n\n` +
+      `We've prepared a special birthday page just for you!\n\n` +
+      `Click here to view: ${wishUrl}\n\n` +
       `From: Your Friends & Family`;
 
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-      message
-    )}`;
-    window.open(whatsappUrl, "_blank");
+    window.open(
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
   };
 
   const handleBack = () => {

@@ -8,7 +8,7 @@ import BirthdayList from "./components/BirthdayList";
 import CalendarView from "./components/CalendarView";
 import "./styles/App.css";
 import "./styles/EditBirthday.css";
-import BirthdayDetail from "./components/BirthdayDetail";
+import BirthdayWish from "./components/BirthdayWish";
 import EditBirthday from "./components/EditBirthday";
 import StarsBackground from "./components/StarsBackground";
 import WelcomePage from "./components/WelcomePage";
@@ -23,10 +23,19 @@ function App() {
   const [birthdays, setBirthdays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false); // Changed initial state to false
+  const [isWishLink, setIsWishLink] = useState(false);
+  const [wishId, setWishId] = useState(null);
 
   // Fetch birthdays from database
   useEffect(() => {
     if (user) {
+
+      const path = window.location.pathname;
+      if (path.startsWith("/wish/")) {
+        const id = path.split("/")[2];
+        setIsWishLink(true);
+        setWishId(id);
+      }
       // In App.js, modify the fetchBirthdays function
       const fetchBirthdays = async () => {
         try {
@@ -294,7 +303,7 @@ function App() {
   const handleGiftOpen = () => {
     setTimeout(() => {
       setShowWelcome(false);
-      navigate("/");
+      navigate(isWishLink ? `/wish/${wishId}` : "/");
     }, 2000);
   };
 
@@ -342,7 +351,7 @@ function App() {
                 todaysBirthdays={getTodaysBirthdays()}
                 upcomingBirthdays={getUpcomingBirthdays()}
                 nextBirthday={getNextBirthday()}
-                isEmpty={birthdays.length === 0} // Add this prop
+                isEmpty={birthdays.length === 0}
               />
             </div>
           }
@@ -392,6 +401,14 @@ function App() {
               birthdays={birthdays}
               updateBirthday={updateBirthday}
             />
+          }
+        />
+        <Route
+          path="/wish/:id"
+          element={
+            <div className="app-container">
+              <BirthdayWish birthdays={birthdays} />
+            </div>
           }
         />
       </Routes>
