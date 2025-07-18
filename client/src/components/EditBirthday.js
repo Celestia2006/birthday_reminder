@@ -144,9 +144,7 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
       const updatedBirthday = await updateBirthday(parseInt(id), updatedData);
 
       // Navigate with the updated data
-      navigate(`/birthday/${id}`, {
-        state: { updatedBirthday },
-      });
+      navigate(`/birthday/${id}`);//, {state: { updatedBirthday },});
     } catch (error) {
       setError(error.message || "Failed to update birthday");
     } finally {
