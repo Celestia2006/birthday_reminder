@@ -192,7 +192,7 @@ app.get("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
     const { rows } = await pool.query(
       `SELECT *, 
        EXTRACT(YEAR FROM age(birth_date)) AS age,
-       (SELECT EXTRACT(DAY FROM (birth_date - CURRENT_DATE)) AS days_until_birthday
+       (SELECT EXTRACT(DAY FROM (birth_date - CURRENT_DATE))) AS days_until_birthday
        FROM birthdays 
        WHERE id = $1 AND user_id = $2`,
       [id, req.userId]
@@ -205,15 +205,10 @@ app.get("/api/birthdays/:id", checkLoggedIn, async (req, res) => {
       });
     }
 
-    // Format phone number for display (remove country code)
-    const birthday = rows[0];
-    if (birthday.phone_number) {
-      birthday.phone_number = birthday.phone_number.replace(/^91/, "");
-    }
-
+    // Return the phone number as-is (with country code)
     res.json({
       success: true,
-      data: birthday,
+      data: rows[0], // No phone number modification
     });
   } catch (err) {
     console.error("Failed to fetch birthday:", err);
@@ -313,8 +308,6 @@ app.post(
         success: true,
         data: {
           ...newBirthday,
-          // Display phone number without country code for frontend
-          phone_number: newBirthday.phone_number.replace(/^91/, ""),
         },
       });
     } catch (err) {

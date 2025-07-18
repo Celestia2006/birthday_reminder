@@ -32,37 +32,29 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    // Try different possible phone number field names
-    const phoneNumber =
-      birthday.phone_number || birthday.phoneNumber || birthday.phone;
-
-    console.log("All birthday data:", birthday);
-    console.log("Phone number fields:", {
-      phone_number: birthday.phone_number,
-      phoneNumber: birthday.phoneNumber,
-      phone: birthday.phone,
-    });
-
-    if (!phoneNumber || phoneNumber.trim() === "") {
-      alert(
-        `Phone number is missing. Available fields: ${Object.keys(
-          birthday
-        ).join(", ")}`
-      );
+    if (!birthday.phone_number) {
+      alert("Phone number is missing for this contact");
       return;
     }
 
-    // Clean the phone number
-    const cleanedPhone = phoneNumber.toString().replace(/\D/g, "");
+    // Clean the phone number (remove all non-digit characters)
+    let cleanedPhone = birthday.phone_number.toString().replace(/\D/g, "");
 
-    if (cleanedPhone.length !== 10) {
-      alert(`Please enter a 10-digit phone number (current: ${cleanedPhone})`);
-      return;
+    // Add country code if missing (assuming 10 digits means India)
+    if (cleanedPhone.length === 10) {
+      cleanedPhone = `91${cleanedPhone}`;
     }
 
-    const whatsappNumber = `91${cleanedPhone}`;
-    const message = `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\nWishing you a wonderful day!`;
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    const message =
+      `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
+      `Wishing you a wonderful day!\n\n` +
+      `${
+        birthday.personalized_message ||
+        "May your year be filled with happiness!"
+      }\n\n` +
+      `From: Your Friend`;
+
+    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(
       message
     )}`;
 
@@ -174,11 +166,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           {birthday.relationship && (
             <div className="detail-section">
               <h3>📞 Contact</h3>
-              <p>
-                {birthday.phone_number ||
-                  birthday.phoneNumber ||
-                  birthday.phone}
-              </p>
+              <p>+{birthday.phone_number.toString().replace(/^91/, "")}</p>
             </div>
           )}
 
