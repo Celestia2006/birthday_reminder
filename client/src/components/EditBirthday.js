@@ -32,7 +32,6 @@ const formatDateForInput = (dateString) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
 
-  // Get the date in local timezone
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -51,6 +50,7 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
     name: "",
     nickname: "",
     date: "",
+    phone_number: "",
     relationship: "Friend",
     zodiac: "",
     photo: "",
@@ -65,7 +65,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
       setError("Image must be smaller than 2MB");
       return;
@@ -81,7 +80,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        // Calculate new dimensions
         let width = img.width;
         let height = img.height;
 
@@ -108,7 +106,8 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
       setFormData({
         name: birthdayToEdit.name,
         nickname: birthdayToEdit.nickname || "",
-        date: formatDateForInput(birthdayToEdit.date), // Use the new formatter
+        date: formatDateForInput(birthdayToEdit.date),
+        phone_number: birthdayToEdit.phone_number || "",
         relationship: birthdayToEdit.relationship || "Friend",
         zodiac: birthdayToEdit.zodiac || "",
         photo: birthdayToEdit.photo || "",
@@ -135,7 +134,11 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
     setError("");
 
     try {
-      await updateBirthday(parseInt(id), formData);
+      await updateBirthday(parseInt(id), {
+        ...formData,
+        // Ensure phone_number is properly formatted before sending
+        phone_number: String(formData.phone_number).replace(/\D/g, ""),
+      });
       navigate(`/birthday/${id}`);
     } catch (error) {
       setError(error.message || "Failed to update birthday");
@@ -175,7 +178,7 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             </div>
           </div>
 
-          {/* Row 2: Birth Date and Relationship */}
+          {/* Row 2: Birth Date and Phone Number */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="date">Birth Date*</label>
@@ -188,6 +191,22 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
                 required
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="phone_number">Phone Number*</label>
+              <input
+                type="tel"
+                id="phone_number"
+                name="phone_number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                required
+                placeholder="e.g., 9876543210 or +919876543210"
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Relationship and Zodiac */}
+          <div className="form-row">
             <div className="form-group">
               <label htmlFor="relationship">Relationship</label>
               <select
@@ -203,10 +222,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
                 ))}
               </select>
             </div>
-          </div>
-
-          {/* Row 3: Zodiac and Photo */}
-          <div className="form-row">
             <div className="form-group">
               <label htmlFor="zodiac">Zodiac Sign</label>
               <select
@@ -223,28 +238,30 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
                 ))}
               </select>
             </div>
-            <div className="form-group">
-              <label>Photo</label>
-              <div className="image-upload-container">
-                <input
-                  type="file"
-                  id="photo"
-                  name="photo"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="file-input"
+          </div>
+
+          {/* Photo Upload */}
+          <div className="form-group">
+            <label>Photo</label>
+            <div className="image-upload-container">
+              <input
+                type="file"
+                id="photo"
+                name="photo"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="file-input"
+              />
+              {previewImage && (
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className="image-preview"
                 />
-                {previewImage && (
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="image-preview"
-                  />
-                )}
-                <label htmlFor="photo" className="file-upload-button">
-                  {previewImage ? "Change Image" : "Select Image"}
-                </label>
-              </div>
+              )}
+              <label htmlFor="photo" className="file-upload-button">
+                {previewImage ? "Change Image" : "Select Image"}
+              </label>
             </div>
           </div>
 
