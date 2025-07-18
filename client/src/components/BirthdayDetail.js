@@ -32,25 +32,38 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    // Generate the WhatsApp message
-    const message = generateWhatsAppMessage(birthday);
-    const phoneNumber = birthday.phone_number; // Ensure this includes country code
+    // Validate phone number
+    if (!birthday.phone_number?.trim()) {
+      alert("This contact doesn't have a valid phone number");
+      return;
+    }
 
-    // Open WhatsApp with the pre-filled message
-    window.open(
-      `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`,
-      "_blank"
-    );
-  };
+    // Format phone number (remove spaces, dashes, etc.)
+    let phoneNumber = birthday.phone_number.replace(/[^\d]/g, "");
 
-  const generateWhatsAppMessage = (bday) => {
-    const age = calculateAge(bday.date) + 1;
-    return (
-      `🎉 *Happy Birthday ${bday.name}!* 🎉\n\n` +
-      `Wishing you a wonderful ${age}th birthday!\n\n` +
-      `${bday.personalized_message || "May your day be filled with joy!"}\n\n` +
-      `From: Your Friend`
-    );
+    // Add country code if missing (assuming Indian numbers by default)
+    if (phoneNumber.length === 10) {
+      phoneNumber = `91${phoneNumber}`; // India country code
+    } else if (phoneNumber.length < 10) {
+      alert("Phone number is too short");
+      return;
+    }
+
+    // Generate message with improved formatting
+    const message =
+      `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
+      `Age: ${calculateAge(birthday.date) + 1}\n` +
+      `Relationship: ${birthday.relationship}\n\n` +
+      `${birthday.personalized_message || "Wishing you an amazing day!"}\n\n` +
+      `Sent via Birthday Reminder App`;
+
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message
+    )}`;
+
+    // Open in new tab
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleBack = () => {
