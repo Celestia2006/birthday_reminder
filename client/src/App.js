@@ -56,6 +56,7 @@ function App() {
             notes: birthday.notes,
             relationship: birthday.relationship,
             personalizedMessage: birthday.personalized_message,
+            phone_number: birthday.phone_number, 
           }));
 
           setBirthdays(transformedData);
@@ -199,6 +200,7 @@ function App() {
         notes: response.data.notes,
         relationship: response.data.relationship,
         personalizedMessage: response.data.personalized_message,
+        phone_number: response.data.phone_number, // Ensure phone number is included
       };
 
       setBirthdays((prev) => [...prev, addedBirthday]);
@@ -230,6 +232,7 @@ function App() {
         notes: updatedData.notes,
         relationship: updatedData.relationship,
         personalized_message: updatedData.personalizedMessage,
+        phone_number: updatedData.phone_number, // Ensure phone number is included
       };
 
       const response = await axios.put(`/api/birthdays/${id}`, dbBirthday);
@@ -246,6 +249,7 @@ function App() {
                 giftIdeas: response.data.gift_ideas,
                 favoriteColor: response.data.favorite_color,
                 personalizedMessage: response.data.personalized_message,
+                phone_number: response.data.phone_number, // Ensure phone number is included
               }
             : b
         )
