@@ -229,11 +229,11 @@ if (path.startsWith("/wish/")) {
 
   const updateBirthday = async (id, updatedData) => {
     try {
-      // Transform data to match backend structure
-      const dbBirthday = {
+      const response = await axios.put(`/api/birthdays/${id}`, {
         name: updatedData.name,
         nickname: updatedData.nickname,
         birth_date: updatedData.date,
+        phone_number: updatedData.phone_number,
         relationship: updatedData.relationship,
         zodiac: updatedData.zodiac,
         photo_url: updatedData.photo,
@@ -242,21 +242,23 @@ if (path.startsWith("/wish/")) {
         hobbies: updatedData.hobbies,
         gift_ideas: updatedData.giftIdeas,
         notes: updatedData.notes,
-        phone_number: updatedData.phone_number,
-      };
+      });
 
-      const response = await axios.put(`/api/birthdays/${id}`, dbBirthday);
-
-      // Return the complete updated birthday data
+      // Return the complete transformed data
       return {
-        ...response.data,
         id: response.data.id,
+        name: response.data.name,
+        nickname: response.data.nickname,
         date: response.data.birth_date,
-        photo: response.data.photo_url,
-        giftIdeas: response.data.gift_ideas,
-        favoriteColor: response.data.favorite_color,
-        personalizedMessage: response.data.personalized_message,
         phone_number: response.data.phone_number,
+        relationship: response.data.relationship,
+        zodiac: response.data.zodiac,
+        photo: response.data.photo_url,
+        personalizedMessage: response.data.personalized_message,
+        favoriteColor: response.data.favorite_color,
+        hobbies: response.data.hobbies,
+        giftIdeas: response.data.gift_ideas,
+        notes: response.data.notes,
       };
     } catch (error) {
       console.error("Error updating birthday:", error);
