@@ -9,6 +9,7 @@ import CalendarView from "./components/CalendarView";
 import "./styles/App.css";
 import "./styles/EditBirthday.css";
 import BirthdayWish from "./components/BirthdayWish";
+import BirthdayDetail from "./components/BirthdayDetail";
 import EditBirthday from "./components/EditBirthday";
 import StarsBackground from "./components/StarsBackground";
 import WelcomePage from "./components/WelcomePage";

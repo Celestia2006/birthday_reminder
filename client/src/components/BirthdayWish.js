@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios"; // Add this import
 import "../styles/BirthdayWish.css";
 
 const BirthdayWish = ({ birthdays, isAdminView = false }) => {
   const { id } = useParams();
   const [isScheduled, setIsScheduled] = useState(false);
-  const whatsappService = new WhatsAppService();
   const birthday = birthdays.find((b) => b.id === parseInt(id));
 
   if (!birthday) {
