@@ -386,9 +386,7 @@ if (path.startsWith("/wish/")) {
           path="/add-birthday"
           element={
             <div className="app-container">
-              <AddBirthday
-                addBirthday={addBirthday}
-              />
+              <AddBirthday addBirthday={addBirthday} />
             </div>
           }
         />
@@ -396,10 +394,7 @@ if (path.startsWith("/wish/")) {
           path="/birthday/:id"
           element={
             <div className="app-container">
-              <BirthdayDetail
-                birthdays={birthdays}
-                onDelete={deleteBirthday} 
-              />
+              <BirthdayDetail birthdays={birthdays} onDelete={deleteBirthday} />
             </div>
           }
         />
@@ -428,11 +423,12 @@ if (path.startsWith("/wish/")) {
             />
           }
         />
+        // Change this route
         <Route
           path="/wish/:id"
           element={
             <div className="app-container">
-              <BirthdayWish birthdays={birthdays} />
+              <BirthdayWish birthdays={birthdays} isPublic={true} />
             </div>
           }
         />

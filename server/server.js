@@ -524,6 +524,36 @@ app.post("/api/send-whatsapp", checkLoggedIn, async (req, res) => {
   }
 });
 
+// Add this new public endpoint
+app.get("/api/public/birthdays/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(
+      `SELECT name, photo_url, personalized_message 
+       FROM birthdays WHERE id = $1`,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Birthday not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to fetch public birthday:", err);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch birthday details",
+    });
+  }
+});
+
 // Handle React routing - return all requests to React app
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/build", "index.html"));

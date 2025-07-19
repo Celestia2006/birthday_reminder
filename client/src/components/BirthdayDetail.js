@@ -91,9 +91,7 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
 
     const message =
       `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
-      `We've prepared a special birthday page just for you!\n\n` +
-      `Click here to view: ${wishUrl}\n\n` +
-      `From: Your Friends & Family`;
+      `Here's a special birthday wish for you:\n${wishUrl}\n\n` +
 
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
