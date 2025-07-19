@@ -204,7 +204,7 @@ if (path.startsWith("/wish/")) {
         zodiac: response.data.data.zodiac,
         photo:
           response.data.data.photo_url ||
-          "https://res.cloudinary.com/dffrevtpk/image/upload/v1752937264/default_io7qnd.jpg",
+          "https://res.cloudinary.com/dffrevtpk/image/upload/v1752938164/default_lcjcji.jpg",
         giftIdeas: response.data.data.gift_ideas,
         hobbies: response.data.data.hobbies,
         favoriteColor: response.data.data.favorite_color,
