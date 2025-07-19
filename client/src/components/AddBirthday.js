@@ -132,7 +132,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
 
     try {
       await addBirthday(formData);
-      if (onSuccess) onSuccess();
     } catch (error) {
       setError(error.message || "Failed to save birthday");
     } finally {

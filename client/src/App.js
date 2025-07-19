@@ -193,24 +193,30 @@ if (path.startsWith("/wish/")) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      console.log("[App] Add birthday response:", response.data);
+
+      // Transform the server response to match frontend format
       const addedBirthday = {
-        id: response.data.id,
-        name: response.data.name,
-        nickname: response.data.nickname,
-        date: response.data.birth_date,
-        zodiac: response.data.zodiac,
-        photo: response.data.photo_url || "/images/default.jpg",
-        giftIdeas: response.data.gift_ideas,
-        hobbies: response.data.hobbies,
-        favoriteColor: response.data.favorite_color,
-        notes: response.data.notes,
-        relationship: response.data.relationship,
-        personalizedMessage: response.data.personalized_message,
-        phone_number: response.data.phone_number, 
+        id: response.data.data.id,
+        name: response.data.data.name,
+        nickname: response.data.data.nickname,
+        date: response.data.data.birth_date,
+        zodiac: response.data.data.zodiac,
+        photo: response.data.data.photo_url || "/images/default.jpg",
+        giftIdeas: response.data.data.gift_ideas,
+        hobbies: response.data.data.hobbies,
+        favoriteColor: response.data.data.favorite_color,
+        notes: response.data.data.notes,
+        relationship: response.data.data.relationship,
+        personalizedMessage: response.data.data.personalized_message,
+        phone_number: response.data.data.phone_number,
       };
 
+      // Update the birthdays state
       setBirthdays((prev) => [...prev, addedBirthday]);
-      navigate("/", { replace: true });
+
+      // Navigate to the birthday list
+      navigate("/all-birthdays");
     } catch (error) {
       let errorMessage = "Failed to save birthday";
       if (error.response) {
@@ -380,7 +386,6 @@ if (path.startsWith("/wish/")) {
             <div className="app-container">
               <AddBirthday
                 addBirthday={addBirthday}
-                onSuccess={() => navigate("/")}
               />
             </div>
           }
