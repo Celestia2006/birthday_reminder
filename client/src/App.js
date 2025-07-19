@@ -202,7 +202,9 @@ if (path.startsWith("/wish/")) {
         nickname: response.data.data.nickname,
         date: response.data.data.birth_date,
         zodiac: response.data.data.zodiac,
-        photo: response.data.data.photo_url || "/images/default.jpg",
+        photo:
+          response.data.data.photo_url ||
+          "https://res.cloudinary.com/dffrevtpk/image/upload/v1752937264/default_io7qnd.jpg",
         giftIdeas: response.data.data.gift_ideas,
         hobbies: response.data.data.hobbies,
         favoriteColor: response.data.data.favorite_color,
