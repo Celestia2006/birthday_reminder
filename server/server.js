@@ -422,7 +422,7 @@ app.put(
       await client.query("COMMIT");
       res.json({
         success: true,
-        data: updated,
+        data: updated
       });
     } catch (err) {
       if (client) await client.query("ROLLBACK");

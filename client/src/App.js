@@ -225,8 +225,8 @@ if (path.startsWith("/wish/")) {
 
   const updateBirthday = async (id, updatedData) => {
     try {
-      console.log("[App] Starting update for:", id); // Log 11
-      console.log("[App] Update data:", updatedData); // Log 12
+      console.log("[App] Starting update for:", id);
+      console.log("[App] Update data:", updatedData);
 
       const response = await axios.put(`/api/birthdays/${id}`, {
         name: updatedData.name,
@@ -243,23 +243,24 @@ if (path.startsWith("/wish/")) {
         notes: updatedData.notes,
       });
 
-      console.log("[App] Server response:", response.data); // Log 13
+      console.log("[App] Full server response:", response);
+      console.log("[App] Response data:", response.data);
 
       // Keep your existing return structure
       return {
-        id: response.data.id,
-        name: response.data.name,
-        nickname: response.data.nickname,
-        date: response.data.birth_date,
-        phone_number: response.data.phone_number,
-        relationship: response.data.relationship,
-        zodiac: response.data.zodiac,
-        photo: response.data.photo_url,
-        personalizedMessage: response.data.personalized_message,
-        favoriteColor: response.data.favorite_color,
-        hobbies: response.data.hobbies,
-        giftIdeas: response.data.gift_ideas,
-        notes: response.data.notes,
+        id: serverData.id,
+        name: serverData.name,
+        nickname: serverData.nickname,
+        date: serverData.birth_date,
+        phone_number: serverData.phone_number,
+        relationship: serverData.relationship,
+        zodiac: serverData.zodiac,
+        photo: serverData.photo_url,
+        personalizedMessage: serverData.personalized_message,
+        favoriteColor: serverData.favorite_color,
+        hobbies: serverData.hobbies,
+        giftIdeas: serverData.gift_ideas,
+        notes: serverData.notes,
       };
     } catch (error) {
       console.error("[App] Update error:", error); // Log 14
