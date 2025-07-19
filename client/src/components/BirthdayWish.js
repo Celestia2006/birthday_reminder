@@ -1,16 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "../styles/BirthdayDetail.css"; // Changed to use BirthdayDetail.css
+import "../styles/BirthdayDetail.css";
 
-const BirthdayWish = ({ birthdays, isAdminView = false }) => {
+const BirthdayWish = ({ isPublic = true }) => {
   const { id } = useParams();
-  const [isScheduled, setIsScheduled] = useState(false);
-  const birthday = birthdays.find((b) => b.id === parseInt(id));
+  const [birthday, setBirthday] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!birthday) {
-    return <div className="birthday-detail-container">Birthday not found</div>;
-  }
+  useEffect(() => {
+    const fetchBirthday = async () => {
+      try {
+        const endpoint = isPublic
+          ? `/api/public/birthdays/${id}`
+          : `/api/birthdays/${id}`;
+
+        const response = await axios.get(endpoint);
+        setBirthday(response.data.data);
+      } catch (err) {
+        setError(err.response?.data?.error || "Failed to load birthday");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBirthday();
+  }, [id, isPublic]);
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;
@@ -28,34 +44,8 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
     return age;
   };
 
-  const handleScheduleMessage = async () => {
-    try {
-      const response = await axios.post("/api/send-whatsapp", {
-        phone_number: birthday.phone_number,
-        message: generateMessage(birthday),
-        date: birthday.date,
-      });
-      if (response.data.success) {
-        setIsScheduled(true);
-      }
-    } catch (error) {
-      console.error("Failed to schedule message:", error);
-    }
-  };
-
-  const generateMessage = (bday) => {
-    return (
-      `🎉 *Happy Birthday ${bday.name}!* 🎉\n\n` +
-      `Check out your special birthday page:\n` +
-      `${window.location.origin}/wish/${bday.id}\n\n` +
-      `${bday.personalizedMessage || "Wishing you an amazing day!"}\n\n` +
-      `From: Your Loved Ones`
-    );
-  };
-
-  // Calculate days until birthday
   const calculateDaysUntilBirthday = () => {
-    if (!birthday.date) return null;
+    if (!birthday?.date) return null;
 
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -74,12 +64,23 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
+  if (loading) {
+    return <div className="birthday-detail-container">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="birthday-detail-container">{error}</div>;
+  }
+
+  if (!birthday) {
+    return <div className="birthday-detail-container">Birthday not found</div>;
+  }
+
   const daysUntilBirthday = calculateDaysUntilBirthday();
 
   return (
     <div className="birthday-detail-container">
       <div className="birthday-detail-card">
-        {/* Name and Nickname at the very top */}
         <div className="detail-header">
           <h2>🎉 Happy Birthday, {birthday.name}! 🎉</h2>
           {birthday.nickname && (
@@ -87,10 +88,9 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
           )}
         </div>
 
-        {/* Oval Image centered below the header */}
         <div className="detail-image-wrapper">
           <img
-            src={birthday.photo}
+            src={birthday.photo || "/images/default.jpeg"}
             alt={birthday.name}
             className="detail-image"
             onError={(e) => {
@@ -100,7 +100,6 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
           />
         </div>
 
-        {/* All details in a single vertical column */}
         <div className="detail-content">
           <div className="detail-section">
             <h3>🎉 Birthday</h3>
@@ -149,19 +148,6 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
             </div>
           )}
         </div>
-
-        {/* Admin Controls (only shown in admin view) */}
-        {isAdminView && (
-          <div className="button-container">
-            <button
-              onClick={handleScheduleMessage}
-              disabled={isScheduled}
-              className="styled-button whatsapp-button"
-            >
-              {isScheduled ? "Message Scheduled!" : "Schedule WhatsApp Wish"}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

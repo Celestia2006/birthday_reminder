@@ -525,11 +525,18 @@ app.post("/api/send-whatsapp", checkLoggedIn, async (req, res) => {
 });
 
 // Add this new public endpoint
+// In server.js, update the public endpoint to:
 app.get("/api/public/birthdays/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { rows } = await pool.query(
-      `SELECT name, photo_url, personalized_message 
+      `SELECT 
+        id, name, nickname, birth_date, zodiac, 
+        photo_url as photo, gift_ideas as "giftIdeas", 
+        hobbies, favorite_color as "favoriteColor", 
+        notes, relationship, 
+        personalized_message as "personalizedMessage",
+        phone_number as "phone_number"
        FROM birthdays WHERE id = $1`,
       [id]
     );
