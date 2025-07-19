@@ -84,14 +84,32 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   }
 
   const handleWhatsAppWish = () => {
-    const whatsappNumber = `91${birthday.phone_number
-      .toString()
-      .replace(/\D/g, "")}`;
-    const wishUrl = `${window.location.origin}/wish/${birthday.id}`;
+    if (!birthday.phone_number) {
+      alert("No phone number available for this contact");
+      return;
+    }
 
+    // Clean the phone number - remove all non-digit characters
+    const cleanedNumber = birthday.phone_number.toString().replace(/\D/g, "");
+
+    // Format for WhatsApp - add international prefix if not present
+    let whatsappNumber;
+    if (cleanedNumber.startsWith("91") && cleanedNumber.length === 12) {
+      // Already has India country code
+      whatsappNumber = cleanedNumber;
+    } else if (cleanedNumber.length === 10) {
+      // Assume it's an Indian number without country code
+      whatsappNumber = `91${cleanedNumber}`;
+    } else {
+      // Use as-is for international numbers
+      whatsappNumber = cleanedNumber;
+    }
+
+    const wishUrl = `${window.location.origin}/wish/${birthday.id}`;
     const message =
       `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
       `Here's a special birthday wish for you:\n${wishUrl}\n\n` +
+      `Wishing you a fantastic day filled with joy and happiness! 🥳`;
 
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
