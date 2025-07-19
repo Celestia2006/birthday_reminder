@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "../styles/AddBirthday.css"; 
 
 const zodiacSigns = [
@@ -42,6 +42,7 @@ const formatDateForInput = (dateString) => {
 const EditBirthday = ({ birthdays, updateBirthday }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation(); // Add this line
   const [previewImage, setPreviewImage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
