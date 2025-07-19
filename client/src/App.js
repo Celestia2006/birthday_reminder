@@ -423,12 +423,12 @@ if (path.startsWith("/wish/")) {
             />
           }
         />
-        // Change this route // In App.js
+        // Change this route
         <Route
           path="/wish/:id"
           element={
-            <div className="app-wrapper">
-              <BirthdayWish isPublic={true} />
+            <div className="app-container">
+              <BirthdayWish birthdays={birthdays} isPublic={true} />
             </div>
           }
         />
