@@ -246,6 +246,8 @@ if (path.startsWith("/wish/")) {
       console.log("[App] Full server response:", response);
       console.log("[App] Response data:", response.data);
 
+      const serverData = response.data.data;
+
       // Keep your existing return structure
       return {
         id: serverData.id,
