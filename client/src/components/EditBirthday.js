@@ -101,27 +101,50 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
   };
 
   useEffect(() => {
-    const birthdayToEdit = birthdays.find((b) => b.id === parseInt(id));
-    if (birthdayToEdit) {
+    // Check for updated data in navigation state first
+    if (location.state?.updatedBirthday) {
+      const updated = location.state.updatedBirthday;
       setFormData({
-        name: birthdayToEdit.name,
-        nickname: birthdayToEdit.nickname || "",
-        date: formatDateForInput(birthdayToEdit.date),
-        phone_number: birthdayToEdit.phone_number || "",
-        relationship: birthdayToEdit.relationship || "Friend",
-        zodiac: birthdayToEdit.zodiac || "",
-        photo: birthdayToEdit.photo || "",
-        personalizedMessage: birthdayToEdit.personalizedMessage || "",
-        favoriteColor: birthdayToEdit.favoriteColor || "",
-        hobbies: birthdayToEdit.hobbies || "",
-        giftIdeas: birthdayToEdit.giftIdeas || "",
-        notes: birthdayToEdit.notes || "",
+        name: updated.name,
+        nickname: updated.nickname || "",
+        date: formatDateForInput(updated.date),
+        phone_number: updated.phone_number || "",
+        relationship: updated.relationship || "Friend",
+        zodiac: updated.zodiac || "",
+        photo: updated.photo || "",
+        personalizedMessage: updated.personalizedMessage || "",
+        favoriteColor: updated.favoriteColor || "",
+        hobbies: updated.hobbies || "",
+        giftIdeas: updated.giftIdeas || "",
+        notes: updated.notes || "",
       });
-      if (birthdayToEdit.photo) {
-        setPreviewImage(birthdayToEdit.photo);
+      if (updated.photo) {
+        setPreviewImage(updated.photo);
+      }
+    } else {
+      // Fall back to birthdays list
+      const birthdayToEdit = birthdays.find((b) => b.id === parseInt(id));
+      if (birthdayToEdit) {
+        setFormData({
+          name: birthdayToEdit.name,
+          nickname: birthdayToEdit.nickname || "",
+          date: formatDateForInput(birthdayToEdit.date),
+          phone_number: birthdayToEdit.phone_number || "",
+          relationship: birthdayToEdit.relationship || "Friend",
+          zodiac: birthdayToEdit.zodiac || "",
+          photo: birthdayToEdit.photo || "",
+          personalizedMessage: birthdayToEdit.personalizedMessage || "",
+          favoriteColor: birthdayToEdit.favoriteColor || "",
+          hobbies: birthdayToEdit.hobbies || "",
+          giftIdeas: birthdayToEdit.giftIdeas || "",
+          notes: birthdayToEdit.notes || "",
+        });
+        if (birthdayToEdit.photo) {
+          setPreviewImage(birthdayToEdit.photo);
+        }
       }
     }
-  }, [id, birthdays]);
+  }, [id, birthdays, location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

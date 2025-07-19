@@ -249,7 +249,7 @@ if (path.startsWith("/wish/")) {
       const serverData = response.data.data;
 
       // Keep your existing return structure
-      return {
+      const transformedData = {
         id: serverData.id,
         name: serverData.name,
         nickname: serverData.nickname,
@@ -264,6 +264,13 @@ if (path.startsWith("/wish/")) {
         giftIdeas: serverData.gift_ideas,
         notes: serverData.notes,
       };
+
+      setBirthdays((prev) =>
+        prev.map((b) => (b.id === parseInt(id) ? transformedData : b))
+      );
+
+      return transformedData;
+
     } catch (error) {
       console.error("[App] Update error:", error); // Log 14
       throw error;
