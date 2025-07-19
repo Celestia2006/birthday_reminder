@@ -140,20 +140,25 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
         date: new Date(formData.date).toISOString(),
       };
 
-      console.log("[EditBirthday] Data being sent to update:", updatedData);
+      console.log("[Edit] Data before update:", updatedData); // Log 1
 
       const updatedBirthday = await updateBirthday(parseInt(id), updatedData);
 
-      console.log(
-        "[EditBirthday] Received updated data from API:",
-        updatedBirthday
-      ); // Log 2
+      console.log("[Edit] Data after update:", updatedBirthday); // Log 2
 
+      if (!updatedBirthday) {
+        throw new Error("No data returned from update");
+      }
+
+      // Force refresh by navigating with state and then refreshing the list
       navigate(`/birthday/${id}`, {
-        state: { updatedBirthday },
+        state: {
+          updatedBirthday,
+          timestamp: Date.now(), // Ensure fresh data
+        },
       });
     } catch (error) {
-      console.error("[EditBirthday] Update error:", error); // Log 3
+      console.error("[Edit] Update error:", error);
       setError(error.message || "Failed to update birthday");
     } finally {
       setIsSubmitting(false);

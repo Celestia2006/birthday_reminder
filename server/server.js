@@ -330,6 +330,8 @@ app.put(
   checkLoggedIn,
   upload.single("photo"),
   async (req, res) => {
+    console.log("[Server] PUT request for:", req.params.id); // Log 15
+    console.log("[Server] Request body:", req.body); // Log 16
     let client;
     try {
       const { id } = req.params;
@@ -386,20 +388,20 @@ app.put(
         rows: [updated],
       } = await client.query(
         `UPDATE birthdays SET
-          name = COALESCE($1, name),
-          nickname = COALESCE($2, nickname),
-          birth_date = COALESCE($3, birth_date),
-          relationship = COALESCE($4, relationship),
-          zodiac = COALESCE($5, zodiac),
-          personalized_message = COALESCE($6, personalized_message),
-          favorite_color = COALESCE($7, favorite_color),
-          hobbies = COALESCE($8, hobbies),
-          gift_ideas = COALESCE($9, gift_ideas),
-          notes = COALESCE($10, notes),
-          photo_url = COALESCE($11, photo_url),
-          phone_number = COALESCE($12, phone_number)
-        WHERE id = $13
-        RETURNING *`,
+        name = COALESCE($1, name),
+        nickname = COALESCE($2, nickname),
+        birth_date = COALESCE($3, birth_date),
+        relationship = COALESCE($4, relationship),
+        zodiac = COALESCE($5, zodiac),
+        personalized_message = COALESCE($6, personalized_message),
+        favorite_color = COALESCE($7, favorite_color),
+        hobbies = COALESCE($8, hobbies),
+        gift_ideas = COALESCE($9, gift_ideas),
+        notes = COALESCE($10, notes),
+        photo_url = COALESCE($11, photo_url),
+        phone_number = COALESCE($12, phone_number)
+      WHERE id = $13
+      RETURNING *`,
         [
           req.body.name || null,
           req.body.nickname || null,
@@ -416,7 +418,7 @@ app.put(
           id,
         ]
       );
-      console.log("Phone Number: ", req.body.phone_number);
+      console.log("[Server] Updated record:", updated); // Log 17
       await client.query("COMMIT");
       res.json({
         success: true,

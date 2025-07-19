@@ -37,20 +37,35 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log("[Detail] Initial props:", { birthdays, id }); // Log 3
+  console.log("[Detail] Location state:", location.state); // Log 4
+
   const [birthday, setBirthday] = useState(() => {
-    if (location.state?.updatedBirthday) {
-      return location.state.updatedBirthday;
-    }
-    const found = birthdays.find((b) => b.id === parseInt(id));
-    return found ? { ...found } : null;
+    const fromState = location.state?.updatedBirthday;
+    const fromProps = birthdays.find((b) => b.id === parseInt(id));
+
+    console.log("[Detail] Initial state - from state:", fromState); // Log 5
+    console.log("[Detail] Initial state - from props:", fromProps); // Log 6
+
+    return fromState || fromProps || null;
   });
 
+
   useEffect(() => {
-    if (location.state?.updatedBirthday) {
-      setBirthday(location.state.updatedBirthday);
+    console.log("[Detail] Effect running"); // Log 7
+
+    const fromState = location.state?.updatedBirthday;
+    const fromProps = birthdays.find((b) => b.id === parseInt(id));
+
+    if (fromState) {
+      console.log("[Detail] Using state data"); // Log 8
+      setBirthday(fromState);
+    } else if (fromProps) {
+      console.log("[Detail] Using props data"); // Log 9
+      setBirthday(fromProps);
     } else {
-      const found = birthdays.find((b) => b.id === parseInt(id));
-      setBirthday(found ? { ...found } : null);
+      console.log("[Detail] No data found"); // Log 10
+      setBirthday(null);
     }
   }, [birthdays, id, location.state]);
 

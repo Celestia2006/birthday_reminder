@@ -225,52 +225,44 @@ if (path.startsWith("/wish/")) {
 
   const updateBirthday = async (id, updatedData) => {
     try {
-      console.log("[App] Updating birthday with data:", { id, updatedData }); // Log 4
+      console.log("[App] Starting update for:", id); // Log 11
+      console.log("[App] Update data:", updatedData); // Log 12
 
-      // Prepare the data to send to the server
-      const requestData = {
+      const response = await axios.put(`/api/birthdays/${id}`, {
         name: updatedData.name,
         nickname: updatedData.nickname,
-        birth_date: updatedData.date, // Note: using birth_date for server
+        birth_date: updatedData.date,
         phone_number: updatedData.phone_number,
         relationship: updatedData.relationship,
         zodiac: updatedData.zodiac,
-        photo_url: updatedData.photo, // Note: using photo_url for server
-        personalized_message: updatedData.personalizedMessage, // Note: using underscore
-        favorite_color: updatedData.favoriteColor, // Note: using underscore
+        photo_url: updatedData.photo,
+        personalized_message: updatedData.personalizedMessage,
+        favorite_color: updatedData.favoriteColor,
         hobbies: updatedData.hobbies,
-        gift_ideas: updatedData.giftIdeas, // Note: using underscore
+        gift_ideas: updatedData.giftIdeas,
         notes: updatedData.notes,
-      };
+      });
 
-      console.log("[App] Data being sent to server:", requestData); // Additional log
+      console.log("[App] Server response:", response.data); // Log 13
 
-      const response = await axios.put(`/api/birthdays/${id}`, requestData);
-
-      console.log("[App] Server response data:", response.data); // Log 5
-
-      // Transform the response back to frontend format
-      const transformedData = {
+      // Keep your existing return structure
+      return {
         id: response.data.id,
         name: response.data.name,
         nickname: response.data.nickname,
-        date: response.data.birth_date, // Now matches what we sent
+        date: response.data.birth_date,
         phone_number: response.data.phone_number,
         relationship: response.data.relationship,
         zodiac: response.data.zodiac,
-        photo: response.data.photo_url, // Now matches what we sent
-        personalizedMessage: response.data.personalized_message, // Now matches what we sent
-        favoriteColor: response.data.favorite_color, // Now matches what we sent
+        photo: response.data.photo_url,
+        personalizedMessage: response.data.personalized_message,
+        favoriteColor: response.data.favorite_color,
         hobbies: response.data.hobbies,
-        giftIdeas: response.data.gift_ideas, // Now matches what we sent
+        giftIdeas: response.data.gift_ideas,
         notes: response.data.notes,
       };
-
-      console.log("[App] Transformed data to return:", transformedData); // Log 6
-
-      return transformedData;
     } catch (error) {
-      console.error("[App] Update error:", error); // Log 7
+      console.error("[App] Update error:", error); // Log 14
       throw error;
     }
   };
