@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "../styles/AddBirthday.css"; // Using the same styles as AddBirthday
+import "../styles/AddBirthday.css"; 
 
 const zodiacSigns = [
   "Aries",
@@ -140,13 +140,20 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
         date: new Date(formData.date).toISOString(),
       };
 
+      console.log("[EditBirthday] Data being sent to update:", updatedData);
+
       const updatedBirthday = await updateBirthday(parseInt(id), updatedData);
 
-      // Navigate with the updated data in state
+      console.log(
+        "[EditBirthday] Received updated data from API:",
+        updatedBirthday
+      ); // Log 2
+
       navigate(`/birthday/${id}`, {
         state: { updatedBirthday },
       });
     } catch (error) {
+      console.error("[EditBirthday] Update error:", error); // Log 3
       setError(error.message || "Failed to update birthday");
     } finally {
       setIsSubmitting(false);

@@ -38,13 +38,13 @@ if (path.startsWith("/wish/")) {
     if (user) {
       const fetchBirthdays = async () => {
         try {
-          console.log("Current user:", user); // Add this to verify user data
+          console.log("Current user:", user); 
           const response = await axios.get("/api/birthdays", {
             headers: {
-              "user-id": user.id, // Explicitly send user ID
+              "user-id": user.id, 
             },
           });
-          console.log("Fetched birthdays:", response.data); // Add this for debugging
+          console.log("Fetched birthdays:", response.data); 
 
           if (response.data && response.data.length === 0) {
             setIsLoading(false);
@@ -106,7 +106,6 @@ if (path.startsWith("/wish/")) {
     const today = new Date();
     const currentYear = today.getFullYear();
 
-    // Get IDs to exclude (today's birthdays + next birthday)
     const todaysBirthdays = getTodaysBirthdays();
     const nextBirthday = todaysBirthdays.length > 0 ? null : getNextBirthday();
     const excludedIds = [
@@ -149,17 +148,14 @@ if (path.startsWith("/wish/")) {
       .slice(0, 4);
   };
 
-  // Add this new function to App.js
   const getNextBirthday = () => {
     const today = new Date();
     const currentYear = today.getFullYear();
 
-    // Get all upcoming birthdays (excluding today's)
     const upcoming = birthdays
       .filter((bday) => {
         if (!bday?.date) return false;
 
-        // Exclude today's birthdays
         const bdayDate = new Date(bday.date);
         const isToday =
           bdayDate.getMonth() === today.getMonth() &&
@@ -210,7 +206,7 @@ if (path.startsWith("/wish/")) {
         notes: response.data.notes,
         relationship: response.data.relationship,
         personalizedMessage: response.data.personalized_message,
-        phone_number: response.data.phone_number, // Ensure phone number is included
+        phone_number: response.data.phone_number, 
       };
 
       setBirthdays((prev) => [...prev, addedBirthday]);
@@ -229,49 +225,62 @@ if (path.startsWith("/wish/")) {
 
   const updateBirthday = async (id, updatedData) => {
     try {
-      const response = await axios.put(`/api/birthdays/${id}`, {
+      console.log("[App] Updating birthday with data:", { id, updatedData }); // Log 4
+
+      // Prepare the data to send to the server
+      const requestData = {
         name: updatedData.name,
         nickname: updatedData.nickname,
-        birth_date: updatedData.date,
+        birth_date: updatedData.date, // Note: using birth_date for server
         phone_number: updatedData.phone_number,
         relationship: updatedData.relationship,
         zodiac: updatedData.zodiac,
-        photo_url: updatedData.photo,
-        personalized_message: updatedData.personalizedMessage,
-        favorite_color: updatedData.favoriteColor,
+        photo_url: updatedData.photo, // Note: using photo_url for server
+        personalized_message: updatedData.personalizedMessage, // Note: using underscore
+        favorite_color: updatedData.favoriteColor, // Note: using underscore
         hobbies: updatedData.hobbies,
-        gift_ideas: updatedData.giftIdeas,
+        gift_ideas: updatedData.giftIdeas, // Note: using underscore
         notes: updatedData.notes,
-      });
+      };
 
-      // Return the complete transformed data
-      return {
+      console.log("[App] Data being sent to server:", requestData); // Additional log
+
+      const response = await axios.put(`/api/birthdays/${id}`, requestData);
+
+      console.log("[App] Server response data:", response.data); // Log 5
+
+      // Transform the response back to frontend format
+      const transformedData = {
         id: response.data.id,
         name: response.data.name,
         nickname: response.data.nickname,
-        date: response.data.birth_date,
+        date: response.data.birth_date, // Now matches what we sent
         phone_number: response.data.phone_number,
         relationship: response.data.relationship,
         zodiac: response.data.zodiac,
-        photo: response.data.photo_url,
-        personalizedMessage: response.data.personalized_message,
-        favoriteColor: response.data.favorite_color,
+        photo: response.data.photo_url, // Now matches what we sent
+        personalizedMessage: response.data.personalized_message, // Now matches what we sent
+        favoriteColor: response.data.favorite_color, // Now matches what we sent
         hobbies: response.data.hobbies,
-        giftIdeas: response.data.gift_ideas,
+        giftIdeas: response.data.gift_ideas, // Now matches what we sent
         notes: response.data.notes,
       };
+
+      console.log("[App] Transformed data to return:", transformedData); // Log 6
+
+      return transformedData;
     } catch (error) {
-      console.error("Error updating birthday:", error);
+      console.error("[App] Update error:", error); // Log 7
       throw error;
     }
   };
 
-  // Add this delete function to your App.js
+  
   const deleteBirthday = async (id) => {
     try {
       await axios.delete(`/api/birthdays/${id}`);
       setBirthdays(birthdays.filter((b) => b.id !== id));
-      navigate("/all-birthdays"); // Redirect to list view after deletion
+      navigate("/all-birthdays"); 
     } catch (error) {
       console.error("Error deleting birthday:", error);
       alert("Failed to delete birthday. Please try again.");
@@ -290,7 +299,7 @@ if (path.startsWith("/wish/")) {
     const monthDiff = today.getMonth() - birthDateObj.getMonth();
     const dayDiff = today.getDate() - birthDateObj.getDate();
 
-    // If birthday hasn't occurred yet this year OR is today
+    
     if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
       age--;
     }
@@ -380,7 +389,7 @@ if (path.startsWith("/wish/")) {
             <div className="app-container">
               <BirthdayDetail
                 birthdays={birthdays}
-                onDelete={deleteBirthday} // Pass the delete function
+                onDelete={deleteBirthday} 
               />
             </div>
           }

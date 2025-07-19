@@ -18,7 +18,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Configure file storage with Cloudinary
+
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -31,7 +31,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  limits: { fileSize: 2 * 1024 * 1024 }, 
 });
 
 function extractPublicId(url) {

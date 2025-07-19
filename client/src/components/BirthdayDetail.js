@@ -6,7 +6,6 @@ const formatPhoneNumber = (num) => {
   if (!num) return "";
   const str = num.toString().replace(/\D/g, "");
 
-  // Format with country code
   if (str.length === 10) return `+91 ${str.slice(0, 5)} ${str.slice(5)}`;
   if (str.length === 12 && str.startsWith("91")) {
     return `+${str.slice(0, 2)} ${str.slice(2, 7)} ${str.slice(7)}`;
@@ -26,7 +25,6 @@ const calculateAge = (birthDate) => {
   const monthDiff = today.getMonth() - birthDateObj.getMonth();
   const dayDiff = today.getDate() - birthDateObj.getDate();
 
-  // If birthday hasn't occurred yet this year OR is today
   if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
     age--;
   }
@@ -40,21 +38,17 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   const location = useLocation();
 
   const [birthday, setBirthday] = useState(() => {
-    // Check for updated data in navigation state first
     if (location.state?.updatedBirthday) {
       return location.state.updatedBirthday;
     }
-    // Fall back to finding in birthdays list
     const found = birthdays.find((b) => b.id === parseInt(id));
     return found ? { ...found } : null;
   });
 
   useEffect(() => {
-    // If we have updated data in state, use that
     if (location.state?.updatedBirthday) {
       setBirthday(location.state.updatedBirthday);
     } else {
-      // Otherwise find in the birthdays list
       const found = birthdays.find((b) => b.id === parseInt(id));
       setBirthday(found ? { ...found } : null);
     }
@@ -63,7 +57,6 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   useEffect(() => {
     if (birthday?.date && isNaN(new Date(birthday.date).getTime())) {
       console.error("Invalid date detected:", birthday.date);
-      // Try to find a valid date from the birthdays list
       const found = birthdays.find((b) => b.id === parseInt(id));
       if (found) {
         setBirthday({ ...found });
@@ -115,7 +108,6 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
     }
   };
 
-  // Calculate days until birthday
   const calculateDaysUntilBirthday = () => {
     if (!birthday.date) return null;
 
@@ -239,7 +231,6 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           <div className="notes-gap"></div>
         </div>
 
-        {/* Buttons at the very bottom */}
         <div className="button-container">
           <button onClick={handleEdit} className="styled-button edit">
             Edit
