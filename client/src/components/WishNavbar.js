@@ -5,17 +5,16 @@ import { useAuth } from "./AuthContext";
 
 const WishNavbar = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const location = useLocation();
-  
 
   const handleSignIn = (e) => {
-    e.preventDefault(); // Prevent default behavior
+    e.preventDefault();
     navigate("/login", {
       state: {
         from: location.pathname,
         redirectToHome: true,
       },
+      replace: true, // Add this to replace current history entry
     });
   };
 
