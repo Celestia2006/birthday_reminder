@@ -4,16 +4,17 @@ import axios from "axios";
 import "../styles/BirthdayDetail.css";
 import "../styles/WishNavbar.css";
 import WishNavbar from "./WishNavbar";
+import Header from "./Header"; // Assuming you have a Header component
 
 const BirthdayWish = ({ birthdays, isAdminView = false }) => {
   const { id } = useParams();
   const [isScheduled, setIsScheduled] = useState(false);
-  const [birthday, setBirthday] = useState(null); // Added state for birthday
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [birthday, setBirthday] = useState(null); 
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Force logout when viewing wish
+    console.log("Logging out");
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
 
@@ -123,6 +124,7 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
 
   return (
     <div className="app-wrapper">
+      <Header />
       <WishNavbar />
       <div className="birthday-detail-container">
         <div className="birthday-detail-card">
