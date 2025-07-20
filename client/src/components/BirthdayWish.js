@@ -12,7 +12,7 @@ const BirthdayWish = ({ birthdays }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Force logout when viewing wish
+    console.log("Logging out");
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
 
