@@ -1,5 +1,6 @@
+import React from "react";
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigatem, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import AddBirthday from "./components/AddBirthday";
 import Header from "./components/Header";
@@ -19,33 +20,41 @@ import { useAuth } from "./components/AuthContext";
 import axios from "axios";
 import WishNavbar from "./components/WishNavbar";
 
+const StatePreserver = ({ children, state }) => {
+  const location = useLocation();
+  return React.cloneElement(children, {
+    key: location.pathname,
+    state: state || location.state,
+  });
+};
+
 function App() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const [birthdays, setBirthdays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(false); 
+  const [showWelcome, setShowWelcome] = useState(false);
   const [isWishLink, setIsWishLink] = useState(false);
   const [wishId, setWishId] = useState(null);
 
   useEffect(() => {
-const path = window.location.pathname;
-if (path.startsWith("/wish/")) {
-  const id = path.split("/")[2];
-  setIsWishLink(true);
-  setWishId(id);
-}
+    const path = window.location.pathname;
+    if (path.startsWith("/wish/")) {
+      const id = path.split("/")[2];
+      setIsWishLink(true);
+      setWishId(id);
+    }
 
     if (user) {
       const fetchBirthdays = async () => {
         try {
-          console.log("Current user:", user); 
+          console.log("Current user:", user);
           const response = await axios.get("/api/birthdays", {
             headers: {
-              "user-id": user.id, 
+              "user-id": user.id,
             },
           });
-          console.log("Fetched birthdays:", response.data); 
+          console.log("Fetched birthdays:", response.data);
 
           if (response.data && response.data.length === 0) {
             setIsLoading(false);
@@ -65,7 +74,7 @@ if (path.startsWith("/wish/")) {
             notes: birthday.notes,
             relationship: birthday.relationship,
             personalizedMessage: birthday.personalized_message,
-            phone_number: birthday.phone_number, 
+            phone_number: birthday.phone_number,
           }));
 
           setBirthdays(transformedData);
@@ -98,7 +107,7 @@ if (path.startsWith("/wish/")) {
       })
       .map((bday) => ({
         ...bday,
-        turningAge: getAge(bday.date) + 1, 
+        turningAge: getAge(bday.date) + 1,
         message: bday.personalizedMessage || `Happy Birthday ${bday.name}! 🎉`,
       }));
   };
@@ -279,19 +288,17 @@ if (path.startsWith("/wish/")) {
       );
 
       return transformedData;
-
     } catch (error) {
       console.error("[App] Update error:", error); // Log 14
       throw error;
     }
   };
 
-  
   const deleteBirthday = async (id) => {
     try {
       await axios.delete(`/api/birthdays/${id}`);
       setBirthdays(birthdays.filter((b) => b.id !== id));
-      navigate("/all-birthdays"); 
+      navigate("/all-birthdays");
     } catch (error) {
       console.error("Error deleting birthday:", error);
       alert("Failed to delete birthday. Please try again.");
@@ -310,7 +317,6 @@ if (path.startsWith("/wish/")) {
     const monthDiff = today.getMonth() - birthDateObj.getMonth();
     const dayDiff = today.getDate() - birthDateObj.getDate();
 
-    
     if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
       age--;
     }
@@ -363,14 +369,6 @@ if (path.startsWith("/wish/")) {
       </div>
     );
   }
-
-  const StatePreserver = ({ children, state }) => {
-    const location = useLocation();
-    return React.cloneElement(children, {
-      key: location.pathname,
-      state: state || location.state,
-    });
-  };
 
   return (
     <div className="app-wrapper">
@@ -440,7 +438,8 @@ if (path.startsWith("/wish/")) {
           path="/login"
           element={
             <StatePreserver>
-              <Login showHeader={!location.state?._isWishNavigation} />
+              <Login showHeader={true} />{" "}
+              {/* Remove the location reference here */}
             </StatePreserver>
           }
         />
