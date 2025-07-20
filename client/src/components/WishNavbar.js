@@ -8,9 +8,11 @@ const WishNavbar = () => {
   const location = useLocation();
   const { logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleSignin = () => {
     logout();
-    navigate("/login");
+    navigate("/login", {
+      state: { fromWish: true, redirectToHome: true }, // Add these flags
+    });
   };
 
   return (
@@ -18,7 +20,7 @@ const WishNavbar = () => {
       <div className="wish-navbar-container">
         <div className="wish-navbar-title">Birthday Wish</div>
         <button
-          onClick={handleLogout}
+          onClick={handleSignin}
           className="signin-button"
           aria-label="Sign in"
         >

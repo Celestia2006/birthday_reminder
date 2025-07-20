@@ -13,7 +13,7 @@ const BirthdayWish = ({ birthdays }) => {
   const location = useLocation();
 
   useEffect(() => {
-    if (!location.state?.fromLogin) {
+    if (!location.state?.fromLogin && !location.state?.fromWish) {
       console.log("Logging out from wish page");
       localStorage.removeItem("authToken");
       localStorage.removeItem("userId");
@@ -31,7 +31,7 @@ const BirthdayWish = ({ birthdays }) => {
     };
 
     fetchBirthday();
-  }, [id]);
+  }, [id, location.state]);
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;

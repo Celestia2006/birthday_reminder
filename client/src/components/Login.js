@@ -11,7 +11,7 @@ const Login = ({ showHeader = false }) => {
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
   const location = useLocation();
-  const { redirectToHome } = location.state || {};
+  const { redirectToHome, fromWish } = location.state || {};
 
   const handleLogin = async (credentials) => {
     try {
