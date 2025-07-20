@@ -11,15 +11,32 @@ const Login = ({ showHeader = false }) => {
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
   const location = useLocation();
-  const { redirectToHome, fromWish } = location.state || {};
+  const { redirectToHome, fromWish, previousPath } = location.state || {};
+
+  console.log("[Login] Rendering. Location state:", location.state);
+  console.log("[Login] User status:", user);
+
 
   const handleLogin = async (credentials) => {
     try {
+      console.log("[Login] Attempting login...");
       await login(credentials);
-      navigate(redirectToHome ? "/" : "/", {
-        state: { fromLogin: true },
-        replace: true,
-      });
+      console.log("[Login] Login successful. Redirecting...");
+      console.log("[Login] redirectToHome:", redirectToHome);
+      console.log("[Login] fromWish:", fromWish);
+      if (redirectToHome) {
+        console.log("[Login] Redirecting to home (/)");
+        navigate("/", {
+          state: { fromLogin: true },
+          replace: true,
+        });
+      } else {
+        console.log("[Login] No redirectToHome, navigating to /");
+        navigate("/", {
+          state: { fromLogin: true },
+          replace: true,
+        });
+      }
     } catch (err) {
       setError(err.message || "Login failed");
     }

@@ -9,9 +9,19 @@ const WishNavbar = () => {
   const { logout } = useAuth();
 
   const handleSignin = () => {
+    console.log("[WishNavbar] Sign In button clicked");
+    console.log("[WishNavbar] Current location state:", location.state);
     logout();
     navigate("/login", {
-      state: { fromWish: true, redirectToHome: true }, // Add these flags
+      state: {
+        fromWish: true,
+        redirectToHome: true,
+        previousPath: location.pathname,
+      },
+    });
+    console.log("[WishNavbar] Navigated to /login with state:", {
+      fromWish: true,
+      redirectToHome: true,
     });
   };
 

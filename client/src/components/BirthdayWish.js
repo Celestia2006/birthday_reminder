@@ -13,10 +13,18 @@ const BirthdayWish = ({ birthdays }) => {
   const location = useLocation();
 
   useEffect(() => {
+
+     console.log("[BirthdayWish] Location state:", location.state);
+     console.log("[BirthdayWish] Checking auth status...");
+
     if (!location.state?.fromLogin && !location.state?.fromWish) {
-      console.log("Logging out from wish page");
+      console.log("[BirthdayWish] No fromLogin or fromWish flag - logging out");
       localStorage.removeItem("authToken");
       localStorage.removeItem("userId");
+    } else {
+      console.log(
+        "[BirthdayWish] Has fromLogin or fromWish flag - maintaining session"
+      );
     }
 
     const fetchBirthday = async () => {
