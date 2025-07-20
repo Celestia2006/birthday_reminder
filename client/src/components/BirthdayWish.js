@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect import
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/BirthdayDetail.css";
-import "../styles/WishNavbar.css";  // Changed to use BirthdayDetail.css
+import "../styles/WishNavbar.css";
 import WishNavbar from "./WishNavbar";
 
 const BirthdayWish = ({ birthdays, isAdminView = false }) => {
   const { id } = useParams();
   const [isScheduled, setIsScheduled] = useState(false);
-  const birthday = birthdays.find((b) => b.id === parseInt(id));
+  const [birthday, setBirthday] = useState(null); // Added state for birthday
+  const [loading, setLoading] = useState(true); // Added loading state
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -29,10 +30,6 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
 
     fetchBirthday();
   }, [id]);
-
-  if (!birthday) {
-    return <div className="birthday-detail-container">Birthday not found</div>;
-  }
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;
@@ -75,9 +72,8 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
     );
   };
 
-  // Calculate days until birthday
   const calculateDaysUntilBirthday = () => {
-    if (!birthday.date) return null;
+    if (!birthday?.date) return null;
 
     const today = new Date();
     const currentYear = today.getFullYear();
