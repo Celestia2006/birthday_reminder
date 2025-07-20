@@ -428,6 +428,7 @@ if (path.startsWith("/wish/")) {
           path="/wish/:id"
           element={<BirthdayWish birthdays={birthdays} isPublic={true} />}
         />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </div>
   );
