@@ -368,8 +368,7 @@ if (path.startsWith("/wish/")) {
     <div className="app-wrapper">
       <StarsBackground />
       <Header />
-      {!isWishLink && <Navbar />}
-      {isWishLink && <WishNavbar />}
+      {isWishLink ? <WishNavbar /> : <Navbar />}
       <Routes>
         <Route
           path="/"
