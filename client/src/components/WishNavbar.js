@@ -7,9 +7,8 @@ const WishNavbar = () => {
 
   const handleSignIn = (e) => {
     e.preventDefault();
-    // Completely replace the current route with login
-    navigate("/login", { replace: true });
-    // Force a hard refresh to ensure clean state if needed
+    logout();
+    navigate("/login");
   };
 
   return (
