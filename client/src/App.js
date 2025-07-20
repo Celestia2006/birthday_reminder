@@ -19,14 +19,7 @@ import Signup from "./components/SignUp";
 import { useAuth } from "./components/AuthContext";
 import axios from "axios";
 import WishNavbar from "./components/WishNavbar";
-
-const StatePreserver = ({ children, state }) => {
-  const location = useLocation();
-  return React.cloneElement(children, {
-    key: location.pathname,
-    state: state || location.state,
-  });
-};
+import StatePreserver from "./components/StatePreserver";
 
 function App() {
   const navigate = useNavigate();
@@ -379,67 +372,93 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="app-container">
-              <Layout
-                todaysBirthdays={getTodaysBirthdays()}
-                upcomingBirthdays={getUpcomingBirthdays()}
-                nextBirthday={getNextBirthday()}
-                isEmpty={birthdays.length === 0}
-              />
-            </div>
+            <StatePreserver>
+              <div className="app-container">
+                <Layout
+                  todaysBirthdays={getTodaysBirthdays()}
+                  upcomingBirthdays={getUpcomingBirthdays()}
+                  nextBirthday={getNextBirthday()}
+                  isEmpty={birthdays.length === 0}
+                />
+              </div>
+            </StatePreserver>
           }
         />
         <Route
           path="/add-birthday"
           element={
-            <div className="app-container">
-              <AddBirthday addBirthday={addBirthday} />
-            </div>
+            <StatePreserver>
+              <div className="app-container">
+                <AddBirthday addBirthday={addBirthday} />
+              </div>
+            </StatePreserver>
           }
         />
         <Route
           path="/birthday/:id"
           element={
-            <div className="app-container">
-              <BirthdayDetail birthdays={birthdays} onDelete={deleteBirthday} />
-            </div>
+            <StatePreserver>
+              <div className="app-container">
+                <BirthdayDetail
+                  birthdays={birthdays}
+                  onDelete={deleteBirthday}
+                />
+              </div>
+            </StatePreserver>
           }
         />
         <Route
           path="/all-birthdays"
           element={
-            <div className="app-container">
-              <BirthdayList birthdays={birthdays} />
-            </div>
+            <StatePreserver>
+              <div className="app-container">
+                <BirthdayList birthdays={birthdays} />
+              </div>
+            </StatePreserver>
           }
         />
         <Route
           path="/calendar"
           element={
-            <div className="app-container">
-              <CalendarView birthdays={birthdays} />
-            </div>
+            <StatePreserver>
+              <div className="app-container">
+                <CalendarView birthdays={birthdays} />
+              </div>
+            </StatePreserver>
           }
         />
         <Route
           path="/edit-birthday/:id"
           element={
-            <EditBirthday
-              birthdays={birthdays}
-              updateBirthday={updateBirthday}
-            />
+            <StatePreserver>
+              <EditBirthday
+                birthdays={birthdays}
+                updateBirthday={updateBirthday}
+              />
+            </StatePreserver>
           }
         />
         <Route
           path="/wish/:id"
-          element={<BirthdayWish birthdays={birthdays} isPublic={true} />}
+          element={
+            <StatePreserver>
+              <BirthdayWish birthdays={birthdays} isPublic={true} />
+            </StatePreserver>
+          }
         />
         <Route
           path="/login"
           element={
             <StatePreserver>
-              <Login showHeader={true} />{" "}
-              {/* Remove the location reference here */}
+              <Login showHeader={true} />
+            </StatePreserver>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <StatePreserver>
+              <Signup />
             </StatePreserver>
           }
         />

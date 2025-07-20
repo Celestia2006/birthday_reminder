@@ -14,13 +14,17 @@ const BirthdayWish = ({ birthdays }) => {
 
   useEffect(() => {
     const state = location.state || {};
-    const hasAuthFlag =
-      state.fromLogin ||
-      state._isWishNavigation ||
-      (state.state && state.state.fromLogin);
+    console.log("[BirthdayWish] Received state:", state);
 
-    if (!hasAuthFlag) {
-      console.log("[BirthdayWish] No auth flags found - logging out");
+    const authFlags = [
+      state.fromLogin,
+      state.fromWish,
+      state._isWishNavigation,
+      state.redirectToHome,
+    ];
+
+    if (!authFlags.some(Boolean)) {
+      console.log("[BirthdayWish] Performing secure logout");
       localStorage.removeItem("authToken");
       localStorage.removeItem("userId");
     }

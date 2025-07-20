@@ -23,26 +23,26 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     try {
       const response = await axios.post("/api/auth/login", credentials);
+
+      console.log("[AuthContext] Login successful, preserving state");
       localStorage.setItem(
         "user",
         JSON.stringify({
           id: response.data.userId,
           username: response.data.username,
+          loginState: {
+            timestamp: Date.now(),
+            fromComponent: "AuthContext",
+          },
         })
       );
 
-      if (response.data.success) {
-        setUser({
-          id: response.data.userId,
-          username: response.data.username,
-        });
-        // Remove the navigate("/") from here - let the Login component handle it
-        return true; // Return success status
-      } else {
-        throw new Error(response.data.message || "Invalid credentials");
-      }
+      return {
+        success: true,
+        state: response.data.state, // Preserve any server state
+      };
     } catch (err) {
-      throw new Error(err.response?.data?.message || "Login failed");
+      throw err;
     }
   };
 
