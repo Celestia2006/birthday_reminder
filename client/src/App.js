@@ -432,7 +432,7 @@ if (path.startsWith("/wish/")) {
           path="/login"
           element={
             <div className="app-wrapper">
-              <Login /> {/* Only the login component - no headers/navbars */}
+              <Login /> 
             </div>
           }
         />

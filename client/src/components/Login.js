@@ -1,21 +1,23 @@
 import React from "react";
-import { useNavigate, useLocation} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import Header from "./Header";
 import StarsBackground from "./StarsBackground";
-import { AuthForm } from "./AuthForm";  // Changed from default import
+import { AuthForm } from "./AuthForm";
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
-  const { redirectToHome } = location.state || {};
   const location = useLocation();
+  const { redirectToHome } = location.state || {};
 
   const handleLogin = async (credentials) => {
     try {
       await login(credentials);
-      navigate("/", { state: { fromLogin: true } });
+      // Redirect to home if coming from wish page, otherwise to root
+      navigate(redirectToHome ? "/" : "/", { state: { fromLogin: true } });
+      console.log("Logged in");
     } catch (err) {
       setError(err.message || "Login failed");
     }

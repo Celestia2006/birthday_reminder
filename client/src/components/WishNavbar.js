@@ -9,11 +9,12 @@ const WishNavbar = () => {
   const location = useLocation();
   
 
-  const handleSignIn = () => {
+  const handleSignIn = (e) => {
+    e.preventDefault(); // Prevent default behavior
     navigate("/login", {
       state: {
-        from: location.pathname, // Current wish page path
-        redirectToHome: true, // Flag to redirect to home after login
+        from: location.pathname,
+        redirectToHome: true,
       },
     });
   };

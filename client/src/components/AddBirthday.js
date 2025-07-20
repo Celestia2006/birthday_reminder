@@ -165,9 +165,7 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="phone">Phone Number* (for notifications)</label>
-              // In the phone number input field, update the pattern and add
-              clearer validation
+              <label htmlFor="phone">Phone Number*</label>
               <input
                 type="tel"
                 id="phone"
