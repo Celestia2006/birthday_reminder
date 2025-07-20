@@ -10,11 +10,10 @@ const WishNavbar = () => {
   const handleSignIn = (e) => {
     e.preventDefault();
     navigate("/login", {
+      replace: true, // This replaces current entry in history
       state: {
-        from: location.pathname,
-        redirectToHome: true,
+        fromWish: true, // Add this flag to indicate coming from wish page
       },
-      replace: true, // Add this to replace current history entry
     });
   };
 

@@ -5,7 +5,7 @@ import StarsBackground from "./StarsBackground";
 import Header from "./Header";
 import { AuthForm } from "./AuthForm";
 
-const Login = () => {
+const Login = ({ showHeader = false }) => {
   const { user } = useAuth();
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ const Login = () => {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      {!redirectToHome && <Header />}
+      {showHeader && <Header />}
       <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
