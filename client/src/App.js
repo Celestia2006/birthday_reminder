@@ -369,7 +369,7 @@ if (path.startsWith("/wish/")) {
       <StarsBackground />
       <Header />
       {!isWishLink && <Navbar />}
-      {isWishLine && <WishNavbar />}
+      {isWishLink && <WishNavbar />}
       <Routes>
         <Route
           path="/"
