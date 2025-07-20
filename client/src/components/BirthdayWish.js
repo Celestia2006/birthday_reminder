@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from "react"; // Added useEffect import
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/BirthdayDetail.css";
 import "../styles/WishNavbar.css";
 import WishNavbar from "./WishNavbar";
-import Header from "./Header"; // Assuming you have a Header component
 
-const BirthdayWish = ({ birthdays, isAdminView = false }) => {
+const BirthdayWish = ({ birthdays }) => {
   const { id } = useParams();
-  const [isScheduled, setIsScheduled] = useState(false);
-  const [birthday, setBirthday] = useState(null); 
-  const [loading, setLoading] = useState(true); 
+  const [birthday, setBirthday] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("Logging out");
+    // Force logout when viewing wish
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
 
@@ -48,31 +46,6 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
     return age;
   };
 
-  const handleScheduleMessage = async () => {
-    try {
-      const response = await axios.post("/api/send-whatsapp", {
-        phone_number: birthday.phone_number,
-        message: generateMessage(birthday),
-        date: birthday.date,
-      });
-      if (response.data.success) {
-        setIsScheduled(true);
-      }
-    } catch (error) {
-      console.error("Failed to schedule message:", error);
-    }
-  };
-
-  const generateMessage = (bday) => {
-    return (
-      `🎉 *Happy Birthday ${bday.name}!* 🎉\n\n` +
-      `Check out your special birthday page:\n` +
-      `${window.location.origin}/wish/${bday.id}\n\n` +
-      `${bday.personalizedMessage || "Wishing you an amazing day!"}\n\n` +
-      `From: Your Loved Ones`
-    );
-  };
-
   const calculateDaysUntilBirthday = () => {
     if (!birthday?.date) return null;
 
@@ -97,118 +70,102 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
 
   if (loading) {
     return (
-      <div className="app-wrapper">
+      <div className="birthday-detail-container">
         <WishNavbar />
-        <div className="birthday-detail-container">Loading...</div>
+        <div>Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="app-wrapper">
+      <div className="birthday-detail-container">
         <WishNavbar />
-        <div className="birthday-detail-container">{error}</div>
+        <div>{error}</div>
       </div>
     );
   }
 
   if (!birthday) {
     return (
-      <div className="app-wrapper">
+      <div className="birthday-detail-container">
         <WishNavbar />
-        <div className="birthday-detail-container">Birthday not found</div>
+        <div>Birthday not found</div>
       </div>
     );
   }
 
   return (
-    <div className="app-wrapper">
-      <Header />
+    <div className="birthday-detail-container">
       <WishNavbar />
-      <div className="birthday-detail-container">
-        <div className="birthday-detail-card">
-          {/* Name and Nickname at the very top */}
-          <div className="detail-header">
-            <h2>🎉 Happy Birthday, {birthday.name}! 🎉</h2>
-            {birthday.nickname && (
-              <p className="nickname">"{birthday.nickname}"</p>
-            )}
+      <div className="birthday-detail-card">
+        {/* Name and Nickname at the very top */}
+        <div className="detail-header">
+          <h2>🎉 Happy Birthday, {birthday.name}! 🎉</h2>
+          {birthday.nickname && (
+            <p className="nickname">"{birthday.nickname}"</p>
+          )}
+        </div>
+
+        {/* Oval Image centered below the header */}
+        <div className="detail-image-wrapper">
+          <img
+            src={birthday.photo}
+            alt={birthday.name}
+            className="detail-image"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/images/default.jpeg";
+            }}
+          />
+        </div>
+
+        {/* All details in a single vertical column */}
+        <div className="detail-content">
+          <div className="detail-section">
+            <h3>🎉 Birthday</h3>
+            <p>
+              {new Date(birthday.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+            <p>Turning {calculateAge(birthday.date) + 1}</p>
           </div>
 
-          {/* Oval Image centered below the header */}
-          <div className="detail-image-wrapper">
-            <img
-              src={birthday.photo}
-              alt={birthday.name}
-              className="detail-image"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/images/default.jpeg";
-              }}
-            />
-          </div>
-
-          {/* All details in a single vertical column */}
-          <div className="detail-content">
+          {daysUntilBirthday !== null && (
             <div className="detail-section">
-              <h3>🎉 Birthday</h3>
-              <p>
-                {new Date(birthday.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <p>Turning {calculateAge(birthday.date) + 1}</p>
+              <h3>⏳ Days Until Birthday</h3>
+              <p>{daysUntilBirthday} days</p>
             </div>
+          )}
 
-            {daysUntilBirthday !== null && (
-              <div className="detail-section">
-                <h3>⏳ Days Until Birthday</h3>
-                <p>{daysUntilBirthday} days</p>
-              </div>
-            )}
+          {birthday.zodiac && (
+            <div className="detail-section">
+              <h3>♋ Zodiac</h3>
+              <p>{birthday.zodiac}</p>
+            </div>
+          )}
 
-            {birthday.zodiac && (
-              <div className="detail-section">
-                <h3>♋ Zodiac</h3>
-                <p>{birthday.zodiac}</p>
-              </div>
-            )}
+          {birthday.personalizedMessage && (
+            <div className="detail-section">
+              <h3>💌 Special Message</h3>
+              <p>{birthday.personalizedMessage}</p>
+            </div>
+          )}
 
-            {birthday.personalizedMessage && (
-              <div className="detail-section">
-                <h3>💌 Special Message</h3>
-                <p>{birthday.personalizedMessage}</p>
-              </div>
-            )}
+          {birthday.favoriteColor && (
+            <div className="detail-section">
+              <h3>🎨 Favorite Color</h3>
+              <p>{birthday.favoriteColor}</p>
+            </div>
+          )}
 
-            {birthday.favoriteColor && (
-              <div className="detail-section">
-                <h3>🎨 Favorite Color</h3>
-                <p>{birthday.favoriteColor}</p>
-              </div>
-            )}
-
-            {birthday.hobbies && (
-              <div className="detail-section">
-                <h3>⚡ Hobbies</h3>
-                <p>{birthday.hobbies}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Admin Controls (only shown in admin view) */}
-          {isAdminView && (
-            <div className="button-container">
-              <button
-                onClick={handleScheduleMessage}
-                disabled={isScheduled}
-                className="styled-button whatsapp-button"
-              >
-                {isScheduled ? "Message Scheduled!" : "Schedule WhatsApp Wish"}
-              </button>
+          {birthday.hobbies && (
+            <div className="detail-section">
+              <h3>⚡ Hobbies</h3>
+              <p>{birthday.hobbies}</p>
             </div>
           )}
         </div>
