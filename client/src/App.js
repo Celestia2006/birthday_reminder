@@ -367,7 +367,7 @@ if (path.startsWith("/wish/")) {
     <div className="app-wrapper">
       <StarsBackground />
       <Header />
-      <Navbar />
+      {!isWishLink && <Navbar />}
       <Routes>
         <Route
           path="/"
@@ -423,14 +423,9 @@ if (path.startsWith("/wish/")) {
             />
           }
         />
-        // Change this route
         <Route
           path="/wish/:id"
-          element={
-            <div className="app-container">
-              <BirthdayWish birthdays={birthdays} isPublic={true} />
-            </div>
-          }
+          element={<BirthdayWish birthdays={birthdays} isPublic={true} />}
         />
       </Routes>
     </div>

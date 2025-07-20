@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/WishNavbar.css"; 
+import "./WishNavbar.css";
 
 const WishNavbar = () => {
   const navigate = useNavigate();
@@ -10,16 +10,14 @@ const WishNavbar = () => {
   };
 
   return (
-    <nav className="wish-navbar">
+    <header className="wish-navbar">
       <div className="wish-navbar-container">
         <div className="wish-navbar-title">Birthday Wish</div>
-        <div className="wish-navbar-signin">
-          <button onClick={handleSignIn} className="signin-button">
-            Sign In
-          </button>
-        </div>
+        <button onClick={handleSignIn} className="signin-button">
+          Sign In
+        </button>
       </div>
-    </nav>
+    </header>
   );
 };
 
