@@ -366,7 +366,7 @@ function App() {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      {user && <Header />}
+      <Header />
       {isWishLink ? <WishNavbar /> : <Navbar />}
       <Routes>
         <Route
