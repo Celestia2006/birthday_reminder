@@ -16,13 +16,9 @@ const WishNavbar = () => {
       state: {
         fromWish: true,
         redirectToHome: true,
-        previousPath: location.pathname,
+        _isWishNavigation: true, // Additional flag
       },
       replace: true,
-    });
-    console.log("[WishNavbar] Navigated to /login with state:", {
-      fromWish: true,
-      redirectToHome: true,
     });
   };
 

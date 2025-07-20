@@ -364,6 +364,14 @@ if (path.startsWith("/wish/")) {
     );
   }
 
+  const StatePreserver = ({ children, state }) => {
+    const location = useLocation();
+    return React.cloneElement(children, {
+      key: location.pathname,
+      state: state || location.state,
+    });
+  };
+
   return (
     <div className="app-wrapper">
       <StarsBackground />
@@ -428,9 +436,14 @@ if (path.startsWith("/wish/")) {
           path="/wish/:id"
           element={<BirthdayWish birthdays={birthdays} isPublic={true} />}
         />
-        <Route path="/login" element={<Login showHeader={true} />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/login"
+          element={
+            <StatePreserver>
+              <Login showHeader={!location.state?._isWishNavigation} />
+            </StatePreserver>
+          }
+        />
       </Routes>
     </div>
   );

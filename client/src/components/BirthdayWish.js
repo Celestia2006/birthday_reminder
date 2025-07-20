@@ -13,15 +13,17 @@ const BirthdayWish = ({ birthdays }) => {
   const location = useLocation();
 
   useEffect(() => {
+    const state = location.state || {};
+    const hasAuthFlag =
+      state.fromLogin ||
+      state._isWishNavigation ||
+      (state.state && state.state.fromLogin);
 
-     console.log("[BirthdayWish] Location state:", location.state);
-
-     const state = location.state?.state || location.state;
-  if (!state?.fromLogin && !state?.fromWish) {
-    console.log("[BirthdayWish] Logging out - no auth flags found");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userId");
-  }
+    if (!hasAuthFlag) {
+      console.log("[BirthdayWish] No auth flags found - logging out");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userId");
+    }
 
     const fetchBirthday = async () => {
       try {
@@ -35,7 +37,7 @@ const BirthdayWish = ({ birthdays }) => {
     };
 
     fetchBirthday();
-  }, [id, location.state]);
+  }, [id, location]);
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;

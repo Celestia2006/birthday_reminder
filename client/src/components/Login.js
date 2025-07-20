@@ -6,53 +6,35 @@ import Header from "./Header";
 import { AuthForm } from "./AuthForm";
 
 const Login = ({ showHeader = false }) => {
-  const { user } = useAuth();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = React.useState("");
   const location = useLocation();
-  const {
-    fromWish = false,
-    redirectToHome = false,
-    previousPath = null,
-  } = location.state || {};
+  const [error, setError] = React.useState("");
 
-  console.log("[Login] Location state:", location.state);
-  console.log(
-    "[Login] Parsed values - fromWish:",
-    fromWish,
-    "redirectToHome:",
-    redirectToHome
-  );
-
+  // Enhanced state extraction
+  const navigationState = location.state || {};
+  console.log("[Login] Full location:", location);
 
   const handleLogin = async (credentials) => {
     try {
-      const success = await login(credentials);
-      if (success) {
-        const { fromWish = false, redirectToHome = false } =
-          location.state || {};
-        console.log(
-          "[Login] Post-login navigation - fromWish:",
-          fromWish,
-          "redirectToHome:",
-          redirectToHome
-        );
+      await login(credentials);
 
-        if (fromWish || redirectToHome) {
-          console.log("[Login] Redirecting to home page");
-          navigate("/", {
-            state: { fromLogin: true },
-            replace: true,
-          });
-        } else {
-          console.log("[Login] Standard redirect to home");
-          navigate("/", {
-            state: { fromLogin: true },
-            replace: true,
-          });
-        }
-      }
+      // Check both direct state and nested state
+      const shouldRedirectHome =
+        navigationState.redirectToHome ||
+        (navigationState.state && navigationState.state.redirectToHome);
+
+      console.log(
+        "[Login] Redirecting to home. Should redirect:",
+        shouldRedirectHome
+      );
+      navigate("/", {
+        state: {
+          fromLogin: true,
+          previousState: navigationState, // Preserve original state
+        },
+        replace: true,
+      });
     } catch (err) {
       setError(err.message || "Login failed");
     }
@@ -61,10 +43,8 @@ const Login = ({ showHeader = false }) => {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      <Header />
+      {showHeader && <Header />}
       <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
 };
-
-export default Login;
