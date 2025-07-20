@@ -48,3 +48,5 @@ const Login = ({ showHeader = false }) => {
     </div>
   );
 };
+
+export default Login;
