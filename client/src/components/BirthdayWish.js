@@ -97,7 +97,6 @@ const BirthdayWish = ({ birthdays }) => {
 
   return (
     <div className="birthday-detail-container">
-      <WishNavbar />
       <div className="birthday-detail-card">
         {/* Name and Nickname at the very top */}
         <div className="detail-header">
