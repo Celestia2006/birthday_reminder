@@ -6,15 +6,11 @@ import { useAuth } from "./AuthContext";
 const WishNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
-  const handleSignIn = (e) => {
-    e.preventDefault();
-    navigate("/login", {
-      replace: true, // This replaces current entry in history
-      state: {
-        fromWish: true, // Add this flag to indicate coming from wish page
-      },
-    });
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -22,7 +18,7 @@ const WishNavbar = () => {
       <div className="wish-navbar-container">
         <div className="wish-navbar-title">Birthday Wish</div>
         <button
-          onClick={handleSignIn}
+          onClick={handleLogout}
           className="signin-button"
           aria-label="Sign in"
         >
