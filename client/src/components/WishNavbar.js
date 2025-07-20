@@ -1,11 +1,12 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/WishNavbar.css";
 import { useAuth } from "./AuthContext";
 
 const WishNavbar = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const location = useLocation();
   
 
   const handleSignIn = () => {

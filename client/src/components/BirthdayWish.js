@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import "../styles/BirthdayDetail.css";
 import "../styles/WishNavbar.css";
@@ -10,6 +10,7 @@ const BirthdayWish = ({ birthdays }) => {
   const [birthday, setBirthday] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     if (!location.state?.fromLogin) {
