@@ -428,7 +428,14 @@ if (path.startsWith("/wish/")) {
           path="/wish/:id"
           element={<BirthdayWish birthdays={birthdays} isPublic={true} />}
         />
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/login"
+          element={
+            <div className="app-wrapper">
+              <Login /> {/* Only the login component - no headers/navbars */}
+            </div>
+          }
+        />
       </Routes>
     </div>
   );

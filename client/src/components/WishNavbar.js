@@ -6,9 +6,11 @@ const WishNavbar = () => {
   const navigate = useNavigate();
 
   const handleSignIn = (e) => {
-    e.preventDefault(); // Prevent default behavior
-    console.log("Sign in clicked"); // For debugging
-    navigate("/login", { replace: true }); // Added replace option
+    e.preventDefault();
+    // Completely replace the current route with login
+    navigate("/login", { replace: true });
+    // Force a hard refresh to ensure clean state if needed
+    window.location.reload();
   };
 
   return (
