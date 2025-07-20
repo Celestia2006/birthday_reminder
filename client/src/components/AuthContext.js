@@ -36,7 +36,8 @@ export function AuthProvider({ children }) {
           id: response.data.userId,
           username: response.data.username,
         });
-        navigate("/");
+        // Remove the navigate("/") from here - let the Login component handle it
+        return true; // Return success status
       } else {
         throw new Error(response.data.message || "Invalid credentials");
       }

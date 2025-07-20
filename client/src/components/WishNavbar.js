@@ -18,6 +18,7 @@ const WishNavbar = () => {
         redirectToHome: true,
         previousPath: location.pathname,
       },
+      replace: true,
     });
     console.log("[WishNavbar] Navigated to /login with state:", {
       fromWish: true,
