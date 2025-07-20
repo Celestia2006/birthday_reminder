@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "../styles/BirthdayDetail.css"; // Changed to use BirthdayDetail.css
+import "../styles/BirthdayDetail.css";
+import "../styles/WishNavbar.css";  // Changed to use BirthdayDetail.css
 import WishNavbar from "./WishNavbar";
 
 const BirthdayWish = ({ birthdays, isAdminView = false }) => {
