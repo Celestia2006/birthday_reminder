@@ -1,0 +1,70 @@
+.wish-navbar {
+  background: linear-gradient(145deg, #000435 0%, #001a66 100%),
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 70%
+    );
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.8rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.wish-navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.wish-navbar-title {
+  color: white;
+  font-family: "Jersey", "Arial Narrow", sans-serif;
+  font-size: 1.8rem;
+  text-shadow: 0px 0px 4px rgba(255, 255, 255, 0.1);
+}
+
+.signin-button {
+  font-family: "Jersey-25", sans-serif;
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  text-shadow: 0px 0px 4px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  border: none;
+}
+
+.signin-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.signin-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .wish-navbar-container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .wish-navbar-title {
+    font-size: 1.5rem;
+  }
+
+  .signin-button {
+    width: 100%;
+  }
+}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/BirthdayDetail.css"; // Changed to use BirthdayDetail.css
+import WishNavbar from "./WishNavbar";
 
 const BirthdayWish = ({ birthdays, isAdminView = false }) => {
   const { id } = useParams();
@@ -78,6 +79,7 @@ const BirthdayWish = ({ birthdays, isAdminView = false }) => {
 
   return (
     <div className="birthday-detail-container">
+      <WishNavbar />
       <div className="birthday-detail-card">
         {/* Name and Nickname at the very top */}
         <div className="detail-header">

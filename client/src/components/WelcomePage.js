@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/WelcomePage.css";
-import StarsBackground from "./StarsBackground"; 
+import StarsBackground from "./StarsBackground";
 import Confetti from "react-confetti";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const WelcomePage = ({ onGiftOpen }) => {
   const [isOpened, setIsOpened] = useState(false);
@@ -11,6 +11,27 @@ const WelcomePage = ({ onGiftOpen }) => {
   const [explosionPosition, setExplosionPosition] = useState({ x: 0, y: 0 });
   const giftRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if this is a wish link
+  const isWishLink = location.pathname.startsWith("/wish/");
+  const wishId = isWishLink ? location.pathname.split("/")[2] : null;
+
+  const handleGiftOpen = () => {
+    // Clear any existing authentication
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+
+    if (isWishLink) {
+      // For wish links, navigate to the wish page after animation
+      setTimeout(() => {
+        navigate(`/wish/${wishId}`);
+      }, 1000);
+    } else {
+      // For regular app entry, use the provided onGiftOpen
+      onGiftOpen();
+    }
+  };
 
   const sparklePositions = [
     { tx: "-40px", ty: "-60px", delay: "0s", size: "8px" },
@@ -45,10 +66,8 @@ const WelcomePage = ({ onGiftOpen }) => {
       });
       setShowConfetti(true);
 
-      setTimeout(() => {
-        onGiftOpen();
-        navigate("/"); 
-      }, 1000); 
+      // Trigger the gift open handler
+      handleGiftOpen();
     }
   };
 
@@ -62,7 +81,7 @@ const WelcomePage = ({ onGiftOpen }) => {
 
     for (let i = 0; i < 250; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const velocity = 8 + Math.random() * 15; 
+      const velocity = 8 + Math.random() * 15;
       const size = 6 + Math.random() * 10;
       const color = colors[Math.floor(Math.random() * colors.length)];
 
@@ -75,7 +94,7 @@ const WelcomePage = ({ onGiftOpen }) => {
         x: explosionPosition.x,
         y: explosionPosition.y,
         rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 30, 
+        rotationSpeed: (Math.random() - 0.5) * 30,
       });
     }
 
@@ -93,8 +112,8 @@ const WelcomePage = ({ onGiftOpen }) => {
           prevPieces
             .map((piece) => ({
               ...piece,
-              x: piece.x + Math.cos(piece.angle) * piece.velocity * 0.5, 
-              y: piece.y + Math.sin(piece.angle) * piece.velocity * 0.5 + 0.8, 
+              x: piece.x + Math.cos(piece.angle) * piece.velocity * 0.5,
+              y: piece.y + Math.sin(piece.angle) * piece.velocity * 0.5 + 0.8,
               rotation: piece.rotation + piece.rotationSpeed * 0.5,
             }))
             .filter((piece) => piece.y < window.innerHeight)
@@ -114,8 +133,8 @@ const WelcomePage = ({ onGiftOpen }) => {
             width={confettiSize.width}
             height={confettiSize.height}
             recycle={false}
-            numberOfPieces={400} 
-            gravity={0.3} 
+            numberOfPieces={400}
+            gravity={0.3}
             colors={["#fef4b5", "#a332d5", "#f9547a", "#ff6857", "#f98c53"]}
             style={{ position: "fixed" }}
           />
@@ -142,8 +161,17 @@ const WelcomePage = ({ onGiftOpen }) => {
       )}
 
       <div className="welcome-content">
-        <h1>Welcome to Birthday Reminder!</h1>
-        <p>Never miss a special day again</p>
+        <h1>
+          {isWishLink
+            ? "You've Received a Birthday Wish!"
+            : "Welcome to Birthday Reminder!"}
+        </h1>
+        <p>
+          {isWishLink
+            ? "Click the gift to see your special message"
+            : "Never miss a special day again"}
+        </p>
+
         <div className="decoration-container">
           <img
             src="/images/moon_star.png"
@@ -165,11 +193,6 @@ const WelcomePage = ({ onGiftOpen }) => {
             alt="Rainbow"
             className="decoration rainbow"
           />
-          {/*<img
-            src="/images/cupcake.png"
-            alt="Cupcake"
-            className="decoration cupcake"
-          />*/}
           <img
             src="/images/heart.png"
             alt="Heart 1"
@@ -187,6 +210,7 @@ const WelcomePage = ({ onGiftOpen }) => {
             className="decoration balloon"
           />
         </div>
+
         <div className="gift-surroundings">
           <img
             src="/images/cake.png"
@@ -199,6 +223,7 @@ const WelcomePage = ({ onGiftOpen }) => {
             className="side-decoration balloons"
           />
         </div>
+
         <div className="gift-button-container" ref={giftRef}>
           <img
             src="/images/gift.png"
@@ -227,7 +252,9 @@ const WelcomePage = ({ onGiftOpen }) => {
           )}
         </div>
 
-        <p className="instruction">Click the gift to begin!</p>
+        <p className="instruction">
+          Click the gift to {isWishLink ? "see your wish" : "begin"}!
+        </p>
       </div>
     </div>
   );
