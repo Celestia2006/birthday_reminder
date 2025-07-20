@@ -367,7 +367,8 @@ if (path.startsWith("/wish/")) {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      <Header />
+      {user && <Header />}
+      {isWishLink && <WishNavbar />}
       {isWishLink ? <WishNavbar /> : <Navbar />}
       <Routes>
         <Route
@@ -432,7 +433,7 @@ if (path.startsWith("/wish/")) {
           path="/login"
           element={
             <div className="app-wrapper">
-              <Login /> 
+              <Login />
             </div>
           }
         />

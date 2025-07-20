@@ -2,9 +2,11 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import StarsBackground from "./StarsBackground";
+import Header from "./Header";
 import { AuthForm } from "./AuthForm";
 
 const Login = () => {
+  const { user } = useAuth();
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
@@ -26,6 +28,7 @@ const Login = () => {
   return (
     <div className="app-wrapper">
       <StarsBackground />
+      {!redirectToHome && <Header />}
       <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
