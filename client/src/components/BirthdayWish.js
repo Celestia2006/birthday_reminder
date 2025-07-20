@@ -12,9 +12,11 @@ const BirthdayWish = ({ birthdays }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("Logging out");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userId");
+    if (!location.state?.fromLogin) {
+      console.log("Logging out from wish page");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userId");
+    }
 
     const fetchBirthday = async () => {
       try {

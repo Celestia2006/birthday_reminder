@@ -8,10 +8,13 @@ const WishNavbar = () => {
   const { logout } = useAuth();
   
 
-  const handleSignIn = (e) => {
-    e.preventDefault();
-    logout();
-    navigate("/login");
+  const handleSignIn = () => {
+    navigate("/login", {
+      state: {
+        from: location.pathname, // Current wish page path
+        redirectToHome: true, // Flag to redirect to home after login
+      },
+    });
   };
 
   return (

@@ -10,11 +10,12 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
+  const { redirectToHome } = location.state || {};
 
   const handleLogin = async (credentials) => {
     try {
       await login(credentials);
-      navigate("/");
+      navigate("/", { state: { fromLogin: true } });
     } catch (err) {
       setError(err.message || "Login failed");
     }
