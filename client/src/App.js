@@ -17,6 +17,7 @@ import Login from "./components/Login";
 import Signup from "./components/SignUp";
 import { useAuth } from "./components/AuthContext";
 import axios from "axios";
+import WishNavbar from "./components/WishNavbar";
 
 function App() {
   const navigate = useNavigate();
@@ -368,6 +369,7 @@ if (path.startsWith("/wish/")) {
       <StarsBackground />
       <Header />
       {!isWishLink && <Navbar />}
+      {isWishLine && <WishNavbar />}
       <Routes>
         <Route
           path="/"
