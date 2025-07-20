@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigatem, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import AddBirthday from "./components/AddBirthday";
 import Header from "./components/Header";
