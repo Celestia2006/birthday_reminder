@@ -28,7 +28,7 @@ const Login = ({ showHeader = false }) => {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      {showHeader && <Header />}
+      <Header />
       <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
