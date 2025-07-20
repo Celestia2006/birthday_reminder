@@ -23,7 +23,6 @@ const Login = () => {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      <Header />
       <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
