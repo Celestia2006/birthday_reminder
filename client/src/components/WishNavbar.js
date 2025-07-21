@@ -17,7 +17,7 @@ const WishNavbar = () => {
   };
   
   console.log('[WishNavbar] Navigation state:', navigationState);
-  
+  logout();
   navigate("/login", {
     state: navigationState,
     replace: true
