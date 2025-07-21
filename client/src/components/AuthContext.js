@@ -1,5 +1,4 @@
-// src/components/AuthContext.js
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -14,29 +13,37 @@ axios.interceptors.request.use((config) => {
 });
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  // Initialize auth state from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("Failed to parse user data:", err);
+        localStorage.removeItem("user");
+      }
+    }
+  }, []);
 
   const login = async (credentials) => {
     try {
       const response = await axios.post("/api/auth/login", credentials);
+
       const userData = {
         id: response.data.userId,
         username: response.data.username,
       };
 
       localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData); // THIS MUST UPDATE THE CONTEXT
-
-      return {
-        success: true,
-        user: userData, // MUST RETURN USER DATA
-      };
+      setUser(userData);
+      navigate("/");
+      return { success: true };
     } catch (err) {
-      throw err;
+      throw new Error(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -44,23 +51,15 @@ export function AuthProvider({ children }) {
     try {
       const response = await axios.post("/api/auth/register", userData);
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: response.data.userId,
-          username: response.data.username,
-        })
-      );
+      const userData = {
+        id: response.data.userId,
+        username: response.data.username,
+      };
 
-      if (response.data.success) {
-        setUser({
-          id: response.data.userId,
-          username: response.data.username,
-        });
-        navigate("/");
-      } else {
-        throw new Error(response.data.message || "Registration failed");
-      }
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      navigate("/");
+      return { success: true };
     } catch (err) {
       throw new Error(err.response?.data?.message || "Registration failed");
     }
@@ -68,8 +67,8 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null);
-    navigate("/login");
     localStorage.removeItem("user");
+    navigate("/login");
   };
 
   return (

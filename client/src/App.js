@@ -16,7 +16,7 @@ import StarsBackground from "./components/StarsBackground";
 import WelcomePage from "./components/WelcomePage";
 import Login from "./components/Login";
 import Signup from "./components/SignUp";
-import { useAuth } from "./components/AuthContext";
+import { AuthProvider, useAuth } from "./components/AuthContext";
 import axios from "axios";
 import WishNavbar from "./components/WishNavbar";
 import StatePreserver from "./components/StatePreserver";
@@ -371,6 +371,7 @@ function App() {
   }
 
   return (
+    <AuthProvider>
     <div className="app-wrapper">
       <StarsBackground />
       <Header />
@@ -471,6 +472,7 @@ function App() {
         />
       </Routes>
     </div>
+    </AuthProvider>
   );
 }
 
