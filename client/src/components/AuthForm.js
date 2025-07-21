@@ -28,7 +28,6 @@ export const AuthForm = ({ type, onSubmit, error }) => {
 
           <form
             onSubmit={(e) => {
-              e.preventDefault();
               onSubmit(credentials);
             }}
           >

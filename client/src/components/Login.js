@@ -54,7 +54,6 @@ const Login = ({ showHeader = false }) => {
       <AuthForm
         type="login"
         onSubmit={(e) => {
-          e.preventDefault();
           handleLogin({
             username: e.target.username.value,
             password: e.target.password.value,
