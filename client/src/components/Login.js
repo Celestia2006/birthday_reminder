@@ -9,12 +9,13 @@ const Login = ({ showHeader = false }) => {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams(); 
   const [error, setError] = React.useState("");
 
   const {
     fromWish = false,
     redirectToHome = false,
-    wishId = null,
+    wishId = id,
   } = location.state || {};
 
   // Enhanced state extraction
