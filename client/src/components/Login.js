@@ -34,7 +34,6 @@ const Login = ({ showHeader = false }) => {
           previousState: navigationState, // Preserve original state
         },
         replace: true,
-        showHeader: true,
       });
     } catch (err) {
       setError(err.message || "Login failed");
@@ -44,7 +43,7 @@ const Login = ({ showHeader = false }) => {
   return (
     <div className="app-wrapper">
       <StarsBackground />
-      {showHeader && <Header />}
+      <Header />
       <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
