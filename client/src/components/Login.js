@@ -31,16 +31,13 @@ const Login = ({ showHeader = false }) => {
     try {
       await login(credentials);
       console.log("Submitting credentials");
-      const result = await login(credentials);
+      {/*const result = await login(credentials);
 
       const shouldRedirectHome =
         navigationState.redirectToHome || navigationState._isWishNavigation;
 
-      console.log("[Login] Redirecting to:", shouldRedirectHome ? "/" : "/");
-      navigate(shouldRedirectHome ? "/" : "/", {
-        state: { fromLogin: true },
-        replace: true,
-      });
+      console.log("[Login] Redirecting to:", shouldRedirectHome ? "/" : "/");*/}
+      navigate("/");
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "Login failed");
