@@ -31,13 +31,6 @@ function App() {
   const [wishId, setWishId] = useState(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser && !user) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, [user, setUser]);
-
-  useEffect(() => {
     const path = window.location.pathname;
     if (path.startsWith("/wish/")) {
       const id = path.split("/")[2];
@@ -372,106 +365,106 @@ function App() {
 
   return (
     <AuthProvider>
-    <div className="app-wrapper">
-      <StarsBackground />
-      <Header />
-      {isWishLink ? <WishNavbar /> : <Navbar />}
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <StatePreserver>
-              <div className="app-container">
-                <Layout
-                  todaysBirthdays={getTodaysBirthdays()}
-                  upcomingBirthdays={getUpcomingBirthdays()}
-                  nextBirthday={getNextBirthday()}
-                  isEmpty={birthdays.length === 0}
-                />
-              </div>
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/add-birthday"
-          element={
-            <StatePreserver>
-              <div className="app-container">
-                <AddBirthday addBirthday={addBirthday} />
-              </div>
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/birthday/:id"
-          element={
-            <StatePreserver>
-              <div className="app-container">
-                <BirthdayDetail
+      <div className="app-wrapper">
+        <StarsBackground />
+        <Header />
+        {isWishLink ? <WishNavbar /> : <Navbar />}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <StatePreserver>
+                <div className="app-container">
+                  <Layout
+                    todaysBirthdays={getTodaysBirthdays()}
+                    upcomingBirthdays={getUpcomingBirthdays()}
+                    nextBirthday={getNextBirthday()}
+                    isEmpty={birthdays.length === 0}
+                  />
+                </div>
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/add-birthday"
+            element={
+              <StatePreserver>
+                <div className="app-container">
+                  <AddBirthday addBirthday={addBirthday} />
+                </div>
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/birthday/:id"
+            element={
+              <StatePreserver>
+                <div className="app-container">
+                  <BirthdayDetail
+                    birthdays={birthdays}
+                    onDelete={deleteBirthday}
+                  />
+                </div>
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/all-birthdays"
+            element={
+              <StatePreserver>
+                <div className="app-container">
+                  <BirthdayList birthdays={birthdays} />
+                </div>
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <StatePreserver>
+                <div className="app-container">
+                  <CalendarView birthdays={birthdays} />
+                </div>
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/edit-birthday/:id"
+            element={
+              <StatePreserver>
+                <EditBirthday
                   birthdays={birthdays}
-                  onDelete={deleteBirthday}
+                  updateBirthday={updateBirthday}
                 />
-              </div>
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/all-birthdays"
-          element={
-            <StatePreserver>
-              <div className="app-container">
-                <BirthdayList birthdays={birthdays} />
-              </div>
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/calendar"
-          element={
-            <StatePreserver>
-              <div className="app-container">
-                <CalendarView birthdays={birthdays} />
-              </div>
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/edit-birthday/:id"
-          element={
-            <StatePreserver>
-              <EditBirthday
-                birthdays={birthdays}
-                updateBirthday={updateBirthday}
-              />
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/wish/:id"
-          element={
-            <StatePreserver>
-              <BirthdayWish birthdays={birthdays} isPublic={true} />
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <StatePreserver>
-              <Login showHeader={true} />
-            </StatePreserver>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <StatePreserver>
-              <Signup />
-            </StatePreserver>
-          }
-        />
-      </Routes>
-    </div>
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/wish/:id"
+            element={
+              <StatePreserver>
+                <BirthdayWish birthdays={birthdays} isPublic={true} />
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <StatePreserver>
+                <Login showHeader={true} />
+              </StatePreserver>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <StatePreserver>
+                <Signup />
+              </StatePreserver>
+            }
+          />
+        </Routes>
+      </div>
     </AuthProvider>
   );
 }

@@ -51,13 +51,14 @@ export function AuthProvider({ children }) {
     try {
       const response = await axios.post("/api/auth/register", userData);
 
-      const userData = {
+      const newUser = {
+        // Changed from userData to newUser to avoid naming conflict
         id: response.data.userId,
         username: response.data.username,
       };
 
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(newUser));
+      setUser(newUser);
       navigate("/");
       return { success: true };
     } catch (err) {
