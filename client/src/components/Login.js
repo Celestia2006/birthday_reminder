@@ -13,6 +13,9 @@ const Login = ({ showHeader = false }) => {
   const [isLoggingIn, setIsLoggingIn] = React.useState(false);
   const { redirectToHome, fromWish } = location.state || {};
 
+  const navigationState = location.state || {};
+  console.log("[Login] Full navigation state:", navigationState);
+
   // Debug logs
   React.useEffect(() => {
     console.group("[Login] Current State");
@@ -26,25 +29,16 @@ const Login = ({ showHeader = false }) => {
     setIsLoggingIn(true);
 
     try {
+      await login(credentials);
       console.log("Submitting credentials");
       const result = await login(credentials);
 
-       await login(credentials);
-       navigate(redirectToHome ? "/" : "/", {
-         state: { fromLogin: true },
-         replace: true,
-       });
+      const shouldRedirectHome =
+        navigationState.redirectToHome || navigationState._isWishNavigation;
 
-      const targetPath = location.state?.redirectToHome
-        ? "/"
-        : location.state?.from || "/";
-      console.log("Navigating to:", targetPath);
-
-      navigate(targetPath, {
-        state: {
-          fromLogin: true,
-          previousState: location.state,
-        },
+      console.log("[Login] Redirecting to:", shouldRedirectHome ? "/" : "/");
+      navigate(shouldRedirectHome ? "/" : "/", {
+        state: { fromLogin: true },
         replace: true,
       });
     } catch (err) {
