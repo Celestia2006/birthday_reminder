@@ -6,44 +6,21 @@ import Header from "./Header";
 import { AuthForm } from "./AuthForm";
 
 const Login = ({ showHeader = false }) => {
-  const { user, login } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [error, setError] = React.useState("");
-  const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+  const location = useLocation();
   const { redirectToHome, fromWish } = location.state || {};
 
-  const navigationState = location.state || {};
-  console.log("[Login] Full navigation state:", navigationState);
-
-  // Debug logs
-  React.useEffect(() => {
-    console.group("[Login] Current State");
-    console.log("User:", user);
-    console.log("Location state:", location.state);
-    console.groupEnd();
-  }, [user, location.state]);
-
   const handleLogin = async (credentials) => {
-    console.group("[Login] Login Process");
-    setIsLoggingIn(true);
-
     try {
       await login(credentials);
-      console.log("Submitting credentials");
-      {/*const result = await login(credentials);
-
-      const shouldRedirectHome =
-        navigationState.redirectToHome || navigationState._isWishNavigation;
-
-      console.log("[Login] Redirecting to:", shouldRedirectHome ? "/" : "/");*/}
-      navigate("/");
+      navigate(redirectToHome ? "/" : "/", {
+        state: { fromLogin: true },
+        replace: true,
+      });
     } catch (err) {
-      console.error("Login error:", err);
       setError(err.message || "Login failed");
-    } finally {
-      setIsLoggingIn(false);
-      console.groupEnd();
     }
   };
 
@@ -51,17 +28,7 @@ const Login = ({ showHeader = false }) => {
     <div className="app-wrapper">
       <StarsBackground />
       {showHeader && <Header />}
-      <AuthForm
-        type="login"
-        onSubmit={(e) => {
-          handleLogin({
-            username: e.target.username.value,
-            password: e.target.password.value,
-          });
-        }}
-        error={error}
-        disabled={isLoggingIn}
-      />
+      <AuthForm type="login" onSubmit={handleLogin} error={error} />
     </div>
   );
 };

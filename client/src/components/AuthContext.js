@@ -14,6 +14,7 @@ axios.interceptors.request.use((config) => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Initialize auth state from localStorage
@@ -27,6 +28,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("user");
       }
     }
+    setIsLoading(false);
   }, []);
 
   const login = async (credentials) => {
@@ -40,7 +42,6 @@ export function AuthProvider({ children }) {
 
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
-      navigate("/");
       return { success: true };
     } catch (err) {
       throw new Error(err.response?.data?.message || "Login failed");
@@ -52,14 +53,12 @@ export function AuthProvider({ children }) {
       const response = await axios.post("/api/auth/register", userData);
 
       const newUser = {
-        // Changed from userData to newUser to avoid naming conflict
         id: response.data.userId,
         username: response.data.username,
       };
 
       localStorage.setItem("user", JSON.stringify(newUser));
       setUser(newUser);
-      navigate("/");
       return { success: true };
     } catch (err) {
       throw new Error(err.response?.data?.message || "Registration failed");
@@ -73,7 +72,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
