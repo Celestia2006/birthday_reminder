@@ -76,6 +76,7 @@ h3 {
 }
 
 .panel {
+  height: 1500px;
   min-height: 100vh;
   flex: 1;
   height: auto;
