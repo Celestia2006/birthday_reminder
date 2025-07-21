@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/BirthdayDetail.css";
 import "../styles/WishNavbar.css";
@@ -11,6 +11,16 @@ const BirthdayWish = ({ birthdays }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    navigate("/login", {
+      state: {
+        fromWish: true,
+        wishId: id, // pass the wish ID you want to redirect back to after login
+      },
+    });
+  };
 
   useEffect(() => {
     const state = location.state || {};

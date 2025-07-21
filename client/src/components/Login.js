@@ -10,7 +10,10 @@ const Login = ({ showHeader = false }) => {
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
   const location = useLocation();
-  const { from } = location.state || { from: { pathname: "/" } };
+  const { fromWish = false, wishId = null } = location.state || {};
+
+  const navigationState = location.state || {};
+  console.log("[Login] Full navigation state:", navigationState);
 
   const handleLogin = async (credentials) => {
     try {
@@ -18,7 +21,14 @@ const Login = ({ showHeader = false }) => {
       if (user) {
         // Force a state refresh
         await initializeAuth();
-        navigate(from.pathname, { replace: true });
+        const shouldRedirectHome =
+          navigationState.redirectToHome || navigationState._isWishNavigation;
+
+        console.log("[Login] Redirecting to:", shouldRedirectHome ? "/" : "/");
+        navigate(shouldRedirectHome ? "/" : "/", {
+          state: { fromLogin: true },
+          replace: true,
+        });
       }
     } catch (err) {
       setError(err.message || "Login failed");
