@@ -28,80 +28,50 @@ const BirthdayWish = ({ birthdays }) => {
       localStorage.removeItem("userId");
     }
 
-    const fetchBirthday = async () => {
-      try {
-        console.groupCollapsed(`[API] Fetching birthday ${id}`);
-        console.log("Request URL:", `/api/public/birthdays/${id}`);
-        console.log("Request Headers:", {
-          Accept: "application/json",
-          "Cache-Control": "no-cache",
-        });
+     const fetchBirthday = async () => {
+       try {
+         console.groupCollapsed(`[API] Fetching birthday ${id}`);
+         const response = await axios.get(`/api/public/birthdays/${id}`);
 
-        const response = await axios.get(`/api/public/birthdays/${id}`, {
-          headers: { "Cache-Control": "no-cache" },
-        });
+         console.log("Full API Response:", response);
+         console.log("Response Data:", response.data);
 
-        console.log("Full API Response:", response);
-        console.log("Response Data:", response.data);
+         if (!response.data?.data) {
+           throw new Error("API response missing data field");
+         }
 
-        if (!response.data?.data) {
-          throw new Error("API response missing data field");
-        }
+         const data = response.data.data;
+         console.log("Raw birth_date from API:", data.birth_date); // Changed from data.date
 
-        const data = response.data.data;
-        console.log("Raw date from API:", data.date);
-        console.log("Type of date:", typeof data.date);
+         // Handle both birth_date and date for backward compatibility
+         const dateValue = data.birth_date || data.date; // Check both fields
+         if (!dateValue) {
+           throw new Error("No date field found in response");
+         }
 
-        // Date parsing with multiple format support
-        let parsedDate;
-        if (data.date instanceof Date) {
-          parsedDate = data.date;
-        } else if (typeof data.date === "string") {
-          // Try ISO format first
-          parsedDate = new Date(data.date);
+         let parsedDate = new Date(dateValue);
+         if (isNaN(parsedDate.getTime())) {
+           console.warn("Initial parse failed, trying alternative format");
+           parsedDate = new Date(dateValue.replace(/-/g, "/"));
+         }
 
-          // Fallback for non-ISO strings
-          if (isNaN(parsedDate.getTime())) {
-            console.warn("ISO parse failed, trying alternative formats");
-            parsedDate = new Date(data.date.replace(/-/g, "/"));
-          }
-        } else {
-          throw new Error(`Unsupported date format: ${typeof data.date}`);
-        }
+         if (isNaN(parsedDate.getTime())) {
+           throw new Error(`Invalid date: ${dateValue}`);
+         }
 
-        console.log("Parsed date:", parsedDate);
-        console.log("Parsed timestamp:", parsedDate.getTime());
-
-        if (isNaN(parsedDate.getTime())) {
-          throw new Error(`Invalid date: ${data.date}`);
-        }
-
-        const formattedBirthday = {
-          ...data,
-          date: parsedDate.toISOString(),
-        };
-
-        console.log("Formatted birthday data:", formattedBirthday);
-        setBirthday(formattedBirthday);
-        console.groupEnd();
-      } catch (err) {
-        console.groupCollapsed(`[ERROR] Fetch failed for birthday ${id}`);
-        console.error("Error details:", {
-          message: err.message,
-          stack: err.stack,
-          response: err.response?.data,
-          config: err.config,
-        });
-        console.groupEnd();
-
-        setError(
-          err.response?.data?.error || "Failed to load birthday details"
-        );
-      } finally {
-        setLoading(false);
-        console.groupEnd(); // Close initialization group
-      }
-    };
+         setBirthday({
+           ...data,
+           date: parsedDate.toISOString(), // Standardize to ISO format
+         });
+       } catch (err) {
+         console.error("Fetch error:", err);
+         setError(
+           err.response?.data?.error || "Failed to load birthday details"
+         );
+       } finally {
+         setLoading(false);
+       }
+     };
 
     fetchBirthday();
   }, [id, location]);
