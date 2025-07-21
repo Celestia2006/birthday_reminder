@@ -34,6 +34,7 @@ const Login = ({ showHeader = false }) => {
           previousState: navigationState, // Preserve original state
         },
         replace: true,
+        showHeader: true,
       });
     } catch (err) {
       setError(err.message || "Login failed");

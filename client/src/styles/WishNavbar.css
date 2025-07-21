@@ -36,7 +36,7 @@
   transition: all 0.3s ease;
   position: absolute;
   right: 2rem;
-  z-index: 500;
+  z-index: 2;
 }
 
 .signin-button:hover {
