@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import StarsBackground from "./StarsBackground";
 import Header from "./Header";
