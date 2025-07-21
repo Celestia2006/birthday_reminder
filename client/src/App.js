@@ -31,6 +31,13 @@ function App() {
   const [wishId, setWishId] = useState(null);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && !user) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [user, setUser]);
+
+  useEffect(() => {
     const path = window.location.pathname;
     if (path.startsWith("/wish/")) {
       const id = path.split("/")[2];

@@ -13,56 +13,50 @@ const Login = ({ showHeader = false }) => {
   const [isLoggingIn, setIsLoggingIn] = React.useState(false);
 
   // Debug logs
-  console.group("[Login] Component State");
-  console.log("Current user:", user);
-  console.log("Location state:", location.state);
-  console.groupEnd();
+  React.useEffect(() => {
+    console.group("[Login] Current State");
+    console.log("User:", user);
+    console.log("Location state:", location.state);
+    console.groupEnd();
+  }, [user, location.state]);
 
   const handleLogin = async (credentials) => {
-    console.group("[Login] Login Flow");
+    console.group("[Login] Login Process");
     setIsLoggingIn(true);
 
     try {
-      console.log("Initiating login with:", credentials);
+      console.log("Submitting credentials");
       const result = await login(credentials);
-      console.log("AuthContext response:", result);
 
-      // Wait briefly for state propagation
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (!result?.success) {
+        throw new Error("Login failed - no success flag");
+      }
 
-      const navigationState = location.state || {};
-      console.log("Resolved navigation state:", navigationState);
+      console.log("Login successful, waiting for state update");
 
-      const shouldRedirectHome =
-        navigationState.redirectToHome || navigationState.state?.redirectToHome;
+      // Wait for state propagation
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      console.log(
-        "Navigation decision:",
-        shouldRedirectHome ? "Home" : "Default"
-      );
-      navigate(shouldRedirectHome ? "/" : "/", {
+      const targetPath = location.state?.redirectToHome
+        ? "/"
+        : location.state?.from || "/";
+      console.log("Navigating to:", targetPath);
+
+      navigate(targetPath, {
         state: {
           fromLogin: true,
-          previousState: navigationState,
+          previousState: location.state,
         },
         replace: true,
       });
     } catch (err) {
-      console.error("Login failed:", err);
-      setError(err.response?.data?.message || "Login failed");
+      console.error("Login error:", err);
+      setError(err.message || "Login failed");
     } finally {
       setIsLoggingIn(false);
       console.groupEnd();
     }
   };
-
-  // Verify auth state updates
-  React.useEffect(() => {
-    if (user) {
-      console.log("[Login] Detected user update - Proceeding to redirect");
-      navigate(location.state?.from || "/", { replace: true });
-    }
-  }, [user, navigate, location.state]);
 
   return (
     <div className="app-wrapper">
@@ -70,13 +64,15 @@ const Login = ({ showHeader = false }) => {
       {showHeader && <Header />}
       <AuthForm
         type="login"
-        onSubmit={(credentials) => {
-          console.log("Form submitted - preventing default");
-          handleLogin(credentials);
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleLogin({
+            username: e.target.username.value,
+            password: e.target.password.value,
+          });
         }}
         error={error}
         disabled={isLoggingIn}
-        onMount={() => console.log("[AuthForm] Ready")}
       />
     </div>
   );

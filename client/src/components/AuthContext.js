@@ -23,23 +23,17 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     try {
       const response = await axios.post("/api/auth/login", credentials);
+      const userData = {
+        id: response.data.userId,
+        username: response.data.username,
+      };
 
-      console.log("[AuthContext] Login successful, preserving state");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: response.data.userId,
-          username: response.data.username,
-          loginState: {
-            timestamp: Date.now(),
-            fromComponent: "AuthContext",
-          },
-        })
-      );
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData); // THIS MUST UPDATE THE CONTEXT
 
       return {
         success: true,
-        state: response.data.state, // Preserve any server state
+        user: userData, // MUST RETURN USER DATA
       };
     } catch (err) {
       throw err;
