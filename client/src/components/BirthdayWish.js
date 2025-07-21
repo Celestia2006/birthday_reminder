@@ -20,7 +20,6 @@ const BirthdayWish = ({ birthdays }) => {
       (state.state && state.state.fromLogin);
 
     if (!hasAuthFlag) {
-      console.log("[BirthdayWish] No auth flags found - logging out");
       localStorage.removeItem("authToken");
       localStorage.removeItem("userId");
     }
@@ -28,10 +27,32 @@ const BirthdayWish = ({ birthdays }) => {
     const fetchBirthday = async () => {
       try {
         const response = await axios.get(`/api/public/birthdays/${id}`);
-        console.log(response.data.data);
-        setBirthday(response.data.data);
+
+        // Validate and format the response data
+        if (!response.data?.data) {
+          throw new Error("Invalid response format");
+        }
+
+        const rawDate = response.data.data.date;
+        const parsedDate = new Date(rawDate);
+
+        if (isNaN(parsedDate.getTime())) {
+          throw new Error("Invalid date format in response");
+        }
+
+        setBirthday({
+          ...response.data.data,
+          date: parsedDate.toISOString(), // Ensure consistent date format
+        });
       } catch (err) {
-        setError(err.response?.data?.error || "Failed to load birthday");
+        console.error("Failed to fetch birthday:", {
+          error: err.message,
+          response: err.response?.data,
+          url: `/api/public/birthdays/${id}`,
+        });
+        setError(
+          err.response?.data?.error || "Failed to load birthday details"
+        );
       } finally {
         setLoading(false);
       }
@@ -43,49 +64,59 @@ const BirthdayWish = ({ birthdays }) => {
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;
 
-    const today = new Date();
-    const birthDateObj = new Date(birthDate);
+    try {
+      const today = new Date();
+      const birthDateObj = new Date(birthDate);
 
-    if (isNaN(birthDateObj.getTime())) return 0;
+      if (isNaN(birthDateObj.getTime())) return 0;
 
-    let age = today.getFullYear() - birthDateObj.getFullYear();
-    const monthDiff = today.getMonth() - birthDateObj.getMonth();
-    const dayDiff = today.getDate() - birthDateObj.getDate();
+      let age = today.getFullYear() - birthDateObj.getFullYear();
+      const monthDiff = today.getMonth() - birthDateObj.getMonth();
+      const dayDiff = today.getDate() - birthDateObj.getDate();
 
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
-      age--;
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
+        age--;
+      }
+      return age;
+    } catch (err) {
+      console.error("Age calculation error:", err);
+      return 0;
     }
-
-    return age;
   };
 
-  const calculateDaysUntilBirthday = () => {
-    if (!birthday.date) return null;
+  const calculateDaysUntilBirthday = (birthDate) => {
+    if (!birthDate) return null;
 
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const birthDate = new Date(birthday.date);
-    const nextBirthday = new Date(
-      currentYear,
-      birthDate.getMonth(),
-      birthDate.getDate()
-    );
+    try {
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const birthDateObj = new Date(birthDate);
 
-    if (nextBirthday < today) {
-      nextBirthday.setFullYear(currentYear + 1);
+      if (isNaN(birthDateObj.getTime())) return null;
+
+      const nextBirthday = new Date(
+        currentYear,
+        birthDateObj.getMonth(),
+        birthDateObj.getDate()
+      );
+
+      if (nextBirthday < today) {
+        nextBirthday.setFullYear(currentYear + 1);
+      }
+
+      const diffTime = nextBirthday - today;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } catch (err) {
+      console.error("Days calculation error:", err);
+      return null;
     }
-
-    const diffTime = nextBirthday - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
-
-  const daysUntilBirthday = calculateDaysUntilBirthday();
 
   if (loading) {
     return (
       <div className="birthday-detail-container">
         <WishNavbar />
-        <div>Loading...</div>
+        <div className="loading-message">Loading birthday details...</div>
       </div>
     );
   }
@@ -94,7 +125,7 @@ const BirthdayWish = ({ birthdays }) => {
     return (
       <div className="birthday-detail-container">
         <WishNavbar />
-        <div>{error}</div>
+        <div className="error-message">{error}</div>
       </div>
     );
   }
@@ -103,15 +134,17 @@ const BirthdayWish = ({ birthdays }) => {
     return (
       <div className="birthday-detail-container">
         <WishNavbar />
-        <div>Birthday not found</div>
+        <div className="not-found-message">Birthday details not available</div>
       </div>
     );
   }
 
+  const age = calculateAge(birthday.date);
+  const daysUntilBirthday = calculateDaysUntilBirthday(birthday.date);
+
   return (
     <div className="birthday-detail-container">
       <div className="birthday-detail-card">
-        {/* Name and Nickname at the very top */}
         <div className="detail-header">
           <h2>🎉 Happy Birthday, {birthday.name}! 🎉</h2>
           {birthday.nickname && (
@@ -119,10 +152,9 @@ const BirthdayWish = ({ birthdays }) => {
           )}
         </div>
 
-        {/* Oval Image centered below the header */}
         <div className="detail-image-wrapper">
           <img
-            src={birthday.photo}
+            src={birthday.photo || "/images/default.jpeg"}
             alt={birthday.name}
             className="detail-image"
             onError={(e) => {
@@ -132,7 +164,6 @@ const BirthdayWish = ({ birthdays }) => {
           />
         </div>
 
-        {/* All details in a single vertical column */}
         <div className="detail-content">
           <div className="detail-section">
             <h3>🎉 Birthday</h3>
@@ -143,7 +174,7 @@ const BirthdayWish = ({ birthdays }) => {
                 day: "numeric",
               })}
             </p>
-            <p>Turning {calculateAge(birthday.date) + 1}</p>
+            <p>Turning {age + 1}</p>
           </div>
 
           {daysUntilBirthday !== null && (
