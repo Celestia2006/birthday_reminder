@@ -14,7 +14,7 @@ const Login = ({ showHeader = false }) => {
 
   const {
     fromWish = false,
-    redirectToHome = false,
+    redirectToHome = true,
     wishId = id,
   } = location.state || {};
 
