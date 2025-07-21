@@ -4,6 +4,7 @@ import axios from "axios";
 import "../styles/BirthdayDetail.css";
 import "../styles/WishNavbar.css";
 import WishNavbar from "./WishNavbar";
+import { useAuth } from "./AuthContext"; // Add this import
 
 const BirthdayWish = ({ isPublic = false }) => {
   const { id } = useParams();
@@ -12,12 +13,13 @@ const BirthdayWish = ({ isPublic = false }) => {
   const [error, setError] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth(); // Add this line to get user and logout from context
 
-   useEffect(() => {
-     if (isPublic && user) {
-       logout();
-     }
-   }, [isPublic, user, logout]);
+  useEffect(() => {
+    if (isPublic && user) {
+      logout();
+    }
+  }, [isPublic, user, logout]);
 
   const handleSignIn = () => {
     navigate("/login", {
