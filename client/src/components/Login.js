@@ -6,19 +6,20 @@ import Header from "./Header";
 import { AuthForm } from "./AuthForm";
 
 const Login = ({ showHeader = false }) => {
-  const { login } = useAuth();
+  const { login, initializeAuth } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = React.useState("");
   const location = useLocation();
-  const { redirectToHome, fromWish } = location.state || {};
+  const { from } = location.state || { from: { pathname: "/" } };
 
   const handleLogin = async (credentials) => {
     try {
-      await login(credentials);
-      navigate(redirectToHome ? "/" : "/", {
-        state: { fromLogin: true },
-        replace: true,
-      });
+      const user = await login(credentials);
+      if (user) {
+        // Force a state refresh
+        await initializeAuth();
+        navigate(from.pathname, { replace: true });
+      }
     } catch (err) {
       setError(err.message || "Login failed");
     }

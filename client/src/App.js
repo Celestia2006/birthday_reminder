@@ -31,6 +31,11 @@ function App() {
   const [wishId, setWishId] = useState(null);
 
   useEffect(() => {
+    // Ensure auth state is synchronized on route changes
+    initializeAuth();
+  }, [location.pathname, initializeAuth]);
+
+  useEffect(() => {
     const path = window.location.pathname;
     if (path.startsWith("/wish/")) {
       const id = path.split("/")[2];

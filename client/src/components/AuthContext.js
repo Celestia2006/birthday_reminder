@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -17,22 +17,29 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Initialize auth state from localStorage
-  useEffect(() => {
+  const initializeAuth = useCallback(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        return parsedUser;
       } catch (err) {
         console.error("Failed to parse user data:", err);
         localStorage.removeItem("user");
       }
     }
-    setIsLoading(false);
+    return null;
   }, []);
 
-  const login = async (credentials) => {
+  useEffect(() => {
+    initializeAuth();
+    setIsLoading(false);
+  }, [initializeAuth]);
+
+  const login = useCallback(async (credentials) => {
     try {
+      setIsLoading(true);
       const response = await axios.post("/api/auth/login", credentials);
 
       const userData = {
@@ -42,11 +49,13 @@ export function AuthProvider({ children }) {
 
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
-      return { success: true };
+      return userData;
     } catch (err) {
       throw new Error(err.response?.data?.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
   const register = async (userData) => {
     try {
@@ -72,7 +81,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, initializeAuth }}>
       {children}
     </AuthContext.Provider>
   );
