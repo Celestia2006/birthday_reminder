@@ -11,6 +11,7 @@ const Login = ({ showHeader = false }) => {
   const location = useLocation();
   const [error, setError] = React.useState("");
   const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+  const { redirectToHome, fromWish } = location.state || {};
 
   // Debug logs
   React.useEffect(() => {
@@ -28,14 +29,11 @@ const Login = ({ showHeader = false }) => {
       console.log("Submitting credentials");
       const result = await login(credentials);
 
-      if (!result?.success) {
-        throw new Error("Login failed - no success flag");
-      }
-
-      console.log("Login successful, waiting for state update");
-
-      // Wait for state propagation
-      await new Promise((resolve) => setTimeout(resolve, 100));
+       await login(credentials);
+       navigate(redirectToHome ? "/" : "/", {
+         state: { fromLogin: true },
+         replace: true,
+       });
 
       const targetPath = location.state?.redirectToHome
         ? "/"
