@@ -32,6 +32,14 @@ function App() {
   const [wishId, setWishId] = useState(null);
 
   useEffect(() => {
+    if (user && location.state?.isNewLogin) {
+      setShowWelcome(true);
+      // Clear the state to prevent showing welcome on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [user, location.state]);
+
+  useEffect(() => {
     // Ensure auth state is synchronized on route changes
     initializeAuth();
   }, [location.pathname, initializeAuth]);
@@ -352,14 +360,19 @@ function App() {
     );
   }
 
+  
   if (showWelcome) {
     return (
       <div className="app-wrapper">
-        <WelcomePage onGiftOpen={handleGiftOpen} />
+        <WelcomePage
+          onGiftOpen={() => {
+            setShowWelcome(false);
+            navigate("/");
+          }}
+        />
       </div>
     );
   }
-
   if (isLoading) {
     return (
       <div className="app-wrapper">

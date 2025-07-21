@@ -1,35 +1,33 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../styles/WishNavbar.css";
 import { useAuth } from "./AuthContext";
 
 const WishNavbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { id } = useParams(); // Get the wish ID from URL params
   const { logout } = useAuth();
 
-  const handleSignin = () => {
-    const navigationState = {
-    fromWish: true,
-    redirectToHome: true,
-    timestamp: Date.now(), // For debugging
-    previousPath: location.pathname
+  const handleSignIn = () => {
+    // First logout if user is logged in
+    logout();
+
+    // Then navigate to login with wish context
+    navigate("/login", {
+      state: {
+        fromWish: true,
+        wishId: id,
+      },
+      replace: true,
+    });
   };
-  
-  console.log('[WishNavbar] Navigation state:', navigationState);
-  logout();
-  navigate("/login", {
-    state: navigationState,
-    replace: true
-  });
-};
 
   return (
     <header className="wish-navbar">
       <div className="wish-navbar-container">
         <div className="wish-navbar-title">Birthday Wish</div>
         <button
-          onClick={handleSignin}
+          onClick={handleSignIn}
           className="signin-button"
           aria-label="Sign in"
         >

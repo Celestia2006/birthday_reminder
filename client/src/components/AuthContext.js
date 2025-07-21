@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -15,6 +21,7 @@ axios.interceptors.request.use((config) => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loginSource, setLoginSource] = useState(null);
   const navigate = useNavigate();
 
   const initializeAuth = useCallback(() => {
@@ -37,28 +44,33 @@ export function AuthProvider({ children }) {
     setIsLoading(false);
   }, [initializeAuth]);
 
-  const login = useCallback(async (credentials) => {
+  const login = useCallback(
+    async (credentials) => {
+      try {
+        setIsLoading(true);
+        const response = await axios.post("/api/auth/login", credentials);
+
+        const userData = {
+          id: response.data.userId,
+          username: response.data.username,
+        };
+
+        localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
+        return { success: true, source: loginSource };
+      } catch (err) {
+        throw new Error(err.response?.data?.message || "Login failed");
+      } finally {
+        setIsLoading(false);
+        setLoginSource(null);
+      }
+    },
+    [loginSource]
+  );
+
+  const register = useCallback(async (userData) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/auth/login", credentials);
-
-      const userData = {
-        id: response.data.userId,
-        username: response.data.username,
-      };
-
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
-      return userData;
-    } catch (err) {
-      throw new Error(err.response?.data?.message || "Login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const register = async (userData) => {
-    try {
       const response = await axios.post("/api/auth/register", userData);
 
       const newUser = {
@@ -71,17 +83,30 @@ export function AuthProvider({ children }) {
       return { success: true };
     } catch (err) {
       throw new Error(err.response?.data?.message || "Registration failed");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("user");
     navigate("/login");
-  };
+  }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, initializeAuth }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        register,
+        logout,
+        setLoginSource,
+        loginSource,
+        initializeAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,41 +1,36 @@
-import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "./AuthContext";
-import StarsBackground from "./StarsBackground";
-import Header from "./Header";
-import { AuthForm } from "./AuthForm";
-
 const Login = ({ showHeader = false }) => {
-  const { login } = useAuth();
+  const { login, setLoginSource } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = React.useState("");
 
-  // Get navigation state with defaults
   const { fromWish = false, wishId = null } = location.state || {};
+
+  useEffect(() => {
+    if (fromWish) {
+      setLoginSource("wish");
+    }
+  }, [fromWish, setLoginSource]);
 
   const handleLogin = async (credentials) => {
     try {
-      await login(credentials);
+      const result = await login(credentials);
 
-      // Determine where to redirect after login
-      if (fromWish && wishId) {
-        // If coming from wish page, go back to that specific wish
-        navigate(`/wish/${wishId}`, {
-          state: { fromLogin: true },
-          replace: true,
-        });
-      } else {
-        // Default to home page
-        navigate("/", {
-          state: { fromLogin: true },
-          replace: true,
-        });
+      if (result?.success) {
+        if (fromWish && wishId) {
+          navigate(`/wish/${wishId}`, { replace: true });
+        } else {
+          navigate("/", {
+            state: { fromLogin: true, isNewLogin: true },
+            replace: true,
+          });
+        }
       }
     } catch (err) {
       setError(err.message || "Login failed");
     }
   };
+
   return (
     <div className="app-wrapper">
       <StarsBackground />
@@ -44,5 +39,3 @@ const Login = ({ showHeader = false }) => {
     </div>
   );
 };
-
-export default Login;

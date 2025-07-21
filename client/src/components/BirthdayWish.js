@@ -5,7 +5,7 @@ import "../styles/BirthdayDetail.css";
 import "../styles/WishNavbar.css";
 import WishNavbar from "./WishNavbar";
 
-const BirthdayWish = ({ birthdays }) => {
+const BirthdayWish = ({ isPublic = false }) => {
   const { id } = useParams();
   const [birthday, setBirthday] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,11 +13,17 @@ const BirthdayWish = ({ birthdays }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+   useEffect(() => {
+     if (isPublic && user) {
+       logout();
+     }
+   }, [isPublic, user, logout]);
+
   const handleSignIn = () => {
     navigate("/login", {
       state: {
         fromWish: true,
-        wishId: id, // pass the wish ID you want to redirect back to after login
+        wishId: id,
       },
     });
   };
