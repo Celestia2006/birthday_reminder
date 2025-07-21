@@ -23,6 +23,7 @@ import StatePreserver from "./components/StatePreserver";
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoading: authLoading, initializeAuth } = useAuth();
   const [birthdays, setBirthdays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
