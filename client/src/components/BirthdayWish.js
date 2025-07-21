@@ -6,7 +6,7 @@ import "../styles/WishNavbar.css";
 import WishNavbar from "./WishNavbar";
 import { useAuth } from "./AuthContext"; // Add this import
 
-const BirthdayWish = ({ isPublic = false }) => {
+const BirthdayWish = ({ birthdays, isPublic }) => {
   const { id } = useParams();
   const [birthday, setBirthday] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -125,7 +125,7 @@ const BirthdayWish = ({ isPublic = false }) => {
       </div>
     );
   }
-
+  if(isPublic){
   return (
     <div className="birthday-detail-container">
       <div className="birthday-detail-card">
@@ -203,5 +203,6 @@ const BirthdayWish = ({ isPublic = false }) => {
     </div>
   );
 };
+}
 
 export default BirthdayWish;

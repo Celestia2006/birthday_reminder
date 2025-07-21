@@ -24,20 +24,14 @@ import StatePreserver from "./components/StatePreserver";
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isLoading: authLoading, initializeAuth } = useAuth();
+  const { user, isLoading: authLoading, initializeAuth, logout } = useAuth();
   const [birthdays, setBirthdays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(() => {
+    return localStorage.getItem("hasSeenWelcome") === "true";
+  });
   const [isWishLink, setIsWishLink] = useState(false);
   const [wishId, setWishId] = useState(null);
-
-  useEffect(() => {
-    if (user && location.state?.isNewLogin) {
-      setShowWelcome(true);
-      // Clear the state to prevent showing welcome on refresh
-      window.history.replaceState({}, document.title);
-    }
-  }, [user, location.state]);
 
   useEffect(() => {
     // Ensure auth state is synchronized on route changes
@@ -50,6 +44,7 @@ function App() {
       const id = path.split("/")[2];
       setIsWishLink(true);
       setWishId(id);
+      setHasSeenWelcome(false);
     }
 
     if (user) {
@@ -332,11 +327,22 @@ function App() {
   };
 
   const handleGiftOpen = () => {
-    setTimeout(() => {
-      setShowWelcome(false);
-      navigate(isWishLink ? `/wish/${wishId}` : "/");
-    }, 2000);
+    setHasSeenWelcome(true);
+    localStorage.setItem("hasSeenWelcome", "true");
+    if (isWishLink && wishId) {
+      navigate(`/wish/${wishId}`, { state: { fromWelcome: true } });
+    } else {
+      navigate("/");
+    }
   };
+
+  if (!hasSeenWelcome && (isWishLink || !user)) {
+    return (
+      <div className="app-wrapper">
+        <WelcomePage onGiftOpen={handleGiftOpen} />
+      </div>
+    );
+  }
 
   if (authLoading) {
     return (
@@ -364,12 +370,10 @@ function App() {
   if (showWelcome) {
     return (
       <div className="app-wrapper">
-        <WelcomePage
-          onGiftOpen={() => {
-            setShowWelcome(false);
-            navigate("/");
-          }}
-        />
+        <WelcomePage onGiftOpen={() => {
+          setShowWelcome(false);
+          navigate("/");
+        }} />
       </div>
     );
   }
