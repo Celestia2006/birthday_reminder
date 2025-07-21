@@ -11,6 +11,12 @@ const Login = ({ showHeader = false }) => {
   const location = useLocation();
   const [error, setError] = React.useState("");
 
+  const {
+    fromWish = false,
+    redirectToHome = false,
+    wishId = null,
+  } = location.state || {};
+
   // Enhanced state extraction
   const navigationState = location.state || {};
   console.log("[Login] Full location:", location);
@@ -19,22 +25,14 @@ const Login = ({ showHeader = false }) => {
     try {
       await login(credentials);
 
-      // Check both direct state and nested state
-      const shouldRedirectHome =
-        navigationState.redirectToHome ||
-        (navigationState.state && navigationState.state.redirectToHome);
-
-      console.log(
-        "[Login] Redirecting to home. Should redirect:",
-        shouldRedirectHome
-      );
-      navigate("/", {
-        state: {
-          fromLogin: true,
-          previousState: navigationState, // Preserve original state
-        },
-        replace: true,
-      });
+      // Redirect logic
+      if (redirectToHome) {
+        navigate("/", { replace: true }); // Always go home if redirectToHome is true
+      } else if (fromWish && wishId) {
+        navigate(`/wish/${wishId}`, { replace: true });
+      } else {
+        navigate("/", { replace: true }); // Default to home
+      }
     } catch (err) {
       setError(err.message || "Login failed");
     }

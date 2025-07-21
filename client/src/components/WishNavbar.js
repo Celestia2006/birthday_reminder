@@ -10,9 +10,14 @@ const WishNavbar = () => {
 
   const handleSignin = () => {
     console.log("[WishNavbar] Sign In button clicked");
-    console.log("[WishNavbar] Current location state:", location.state);
     logout();
-    navigate("/login");
+    navigate("/login", {
+      state: {
+        fromWish: true, // Indicates coming from wish page
+        redirectToHome: true, // New flag to redirect to home after login
+        wishId: id, // Keep the wishId for reference if needed
+      },
+    });
   };
 
   return (
