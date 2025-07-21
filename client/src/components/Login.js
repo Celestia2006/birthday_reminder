@@ -25,15 +25,9 @@ const Login = ({ showHeader = false }) => {
   const handleLogin = async (credentials) => {
     try {
       await login(credentials);
-
-      // Redirect logic
-      if (redirectToHome) {
-        navigate("/", { replace: true }); // Always go home if redirectToHome is true
-      }
-      else {
         navigate("/", { replace: true }); // Default to home
       }
-    } catch (err) {
+    catch (err) {
       setError(err.message || "Login failed");
     }
   };
