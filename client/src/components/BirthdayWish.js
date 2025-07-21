@@ -13,6 +13,9 @@ const BirthdayWish = ({ birthdays }) => {
   const location = useLocation();
 
   useEffect(() => {
+    console.groupCollapsed(`[BirthdayWish] Initializing for ID: ${id}`);
+    console.log("Location state:", location.state);
+
     const state = location.state || {};
     const hasAuthFlag =
       state.fromLogin ||
@@ -20,41 +23,83 @@ const BirthdayWish = ({ birthdays }) => {
       (state.state && state.state.fromLogin);
 
     if (!hasAuthFlag) {
+      console.log("[Auth] No auth flags found - clearing local storage");
       localStorage.removeItem("authToken");
       localStorage.removeItem("userId");
     }
 
     const fetchBirthday = async () => {
       try {
-        const response = await axios.get(`/api/public/birthdays/${id}`);
+        console.groupCollapsed(`[API] Fetching birthday ${id}`);
+        console.log("Request URL:", `/api/public/birthdays/${id}`);
+        console.log("Request Headers:", {
+          Accept: "application/json",
+          "Cache-Control": "no-cache",
+        });
 
-        // Validate and format the response data
+        const response = await axios.get(`/api/public/birthdays/${id}`, {
+          headers: { "Cache-Control": "no-cache" },
+        });
+
+        console.log("Full API Response:", response);
+        console.log("Response Data:", response.data);
+
         if (!response.data?.data) {
-          throw new Error("Invalid response format");
+          throw new Error("API response missing data field");
         }
 
-        const rawDate = response.data.data.date;
-        const parsedDate = new Date(rawDate);
+        const data = response.data.data;
+        console.log("Raw date from API:", data.date);
+        console.log("Type of date:", typeof data.date);
+
+        // Date parsing with multiple format support
+        let parsedDate;
+        if (data.date instanceof Date) {
+          parsedDate = data.date;
+        } else if (typeof data.date === "string") {
+          // Try ISO format first
+          parsedDate = new Date(data.date);
+
+          // Fallback for non-ISO strings
+          if (isNaN(parsedDate.getTime())) {
+            console.warn("ISO parse failed, trying alternative formats");
+            parsedDate = new Date(data.date.replace(/-/g, "/"));
+          }
+        } else {
+          throw new Error(`Unsupported date format: ${typeof data.date}`);
+        }
+
+        console.log("Parsed date:", parsedDate);
+        console.log("Parsed timestamp:", parsedDate.getTime());
 
         if (isNaN(parsedDate.getTime())) {
-          throw new Error("Invalid date format in response");
+          throw new Error(`Invalid date: ${data.date}`);
         }
 
-        setBirthday({
-          ...response.data.data,
-          date: parsedDate.toISOString(), // Ensure consistent date format
-        });
+        const formattedBirthday = {
+          ...data,
+          date: parsedDate.toISOString(),
+        };
+
+        console.log("Formatted birthday data:", formattedBirthday);
+        setBirthday(formattedBirthday);
+        console.groupEnd();
       } catch (err) {
-        console.error("Failed to fetch birthday:", {
-          error: err.message,
+        console.groupCollapsed(`[ERROR] Fetch failed for birthday ${id}`);
+        console.error("Error details:", {
+          message: err.message,
+          stack: err.stack,
           response: err.response?.data,
-          url: `/api/public/birthdays/${id}`,
+          config: err.config,
         });
+        console.groupEnd();
+
         setError(
           err.response?.data?.error || "Failed to load birthday details"
         );
       } finally {
         setLoading(false);
+        console.groupEnd(); // Close initialization group
       }
     };
 
