@@ -28,7 +28,12 @@ const BirthdayWish = ({ birthdays }) => {
     const fetchBirthday = async () => {
       try {
         const response = await axios.get(`/api/public/birthdays/${id}`);
-        setBirthday(response.data.data);
+        // Ensure date is properly formatted
+        const birthdayData = {
+          ...response.data.data,
+          date: new Date(response.data.data.date).toISOString(), // Ensure proper date format
+        };
+        setBirthday(birthdayData);
       } catch (err) {
         setError(err.response?.data?.error || "Failed to load birthday");
       } finally {
@@ -41,13 +46,15 @@ const BirthdayWish = ({ birthdays }) => {
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;
-    const today = new Date();
-    const birthDateObj = new Date(birthDate);
-    if (isNaN(birthDateObj.getTime())) return 0;
 
-    let age = today.getFullYear() - birthDateObj.getFullYear();
-    const monthDiff = today.getMonth() - birthDateObj.getMonth();
-    const dayDiff = today.getDate() - birthDateObj.getDate();
+    // Parse the date string if it's not already a Date object
+    const dateObj = new Date(birthDate);
+    if (isNaN(dateObj.getTime())) return 0;
+
+    const today = new Date();
+    let age = today.getFullYear() - dateObj.getFullYear();
+    const monthDiff = today.getMonth() - dateObj.getMonth();
+    const dayDiff = today.getDate() - dateObj.getDate();
 
     if (monthDiff < 0 || (monthDiff === 0 && dayDiff <= 0)) {
       age--;
@@ -61,6 +68,9 @@ const BirthdayWish = ({ birthdays }) => {
     const today = new Date();
     const currentYear = today.getFullYear();
     const birthDate = new Date(birthday.date);
+
+    if (isNaN(birthDate.getTime())) return null;
+
     const nextBirthday = new Date(
       currentYear,
       birthDate.getMonth(),
@@ -76,6 +86,7 @@ const BirthdayWish = ({ birthdays }) => {
   };
 
   const daysUntilBirthday = calculateDaysUntilBirthday();
+  const age = birthday ? calculateAge(birthday.date) : 0;
 
   if (loading) {
     return (
@@ -133,13 +144,14 @@ const BirthdayWish = ({ birthdays }) => {
           <div className="detail-section">
             <h3>🎉 Birthday</h3>
             <p>
-              {new Date(birthday.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              {birthday?.date &&
+                new Date(birthday.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
             </p>
-            <p>Turning {calculateAge(birthday.date) + 1}</p>
+            <p>Turning {age + 1}</p>
           </div>
 
           {daysUntilBirthday !== null && (
