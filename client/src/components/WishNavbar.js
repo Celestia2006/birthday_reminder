@@ -12,14 +12,7 @@ const WishNavbar = () => {
     console.log("[WishNavbar] Sign In button clicked");
     console.log("[WishNavbar] Current location state:", location.state);
     logout();
-    navigate("/login", {
-      state: {
-        fromWish: true,
-        redirectToHome: true,
-        _isWishNavigation: true, // Additional flag
-      },
-      replace: true,
-    });
+    navigate("/login");
   };
 
   return (
