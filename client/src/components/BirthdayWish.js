@@ -41,7 +41,7 @@ const BirthdayWish = ({ birthdays }) => {
          }
 
          const data = response.data.data;
-         console.log("Raw birth_date from API:", data.birth_date); // Changed from data.date
+         
 
          // Handle both birth_date and date for backward compatibility
          const dateValue = data.birth_date || data.date; // Check both fields

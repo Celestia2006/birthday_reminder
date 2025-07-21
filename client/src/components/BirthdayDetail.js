@@ -110,11 +110,22 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
       `🎉 *Happy Birthday ${birthday.name}!* 🎉\n\n` +
       `Here's a special birthday wish for you:\n${wishUrl}\n\n` +
       `Wishing you a fantastic day filled with joy and happiness! 🥳`;
+    
+      const form = document.createElement("form");
+      form.setAttribute("action", `https://wa.me/${whatsappNumber}`);
+      form.setAttribute("method", "post");
+      form.setAttribute("target", "_blank");
+      form.style.display = "none";
 
-    window.open(
-      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
-      "_blank"
-    );
+      const messageInput = document.createElement("input");
+      messageInput.setAttribute("type", "hidden");
+      messageInput.setAttribute("name", "text");
+      messageInput.setAttribute("value", message);
+
+      form.appendChild(messageInput);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
   };
 
   const handleBack = () => {
