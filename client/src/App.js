@@ -23,7 +23,7 @@ import StatePreserver from "./components/StatePreserver";
 
 function App() {
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, initializeAuth } = useAuth();
   const [birthdays, setBirthdays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -369,7 +369,6 @@ function App() {
   }
 
   return (
-    <AuthProvider>
       <div className="app-wrapper">
         <StarsBackground />
         <Header />
@@ -470,7 +469,6 @@ function App() {
           />
         </Routes>
       </div>
-    </AuthProvider>
   );
 }
 
