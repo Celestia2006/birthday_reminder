@@ -29,9 +29,8 @@ const Login = ({ showHeader = false }) => {
       // Redirect logic
       if (redirectToHome) {
         navigate("/", { replace: true }); // Always go home if redirectToHome is true
-      } else if (fromWish && wishId) {
-        navigate(`/wish/${wishId}`, { replace: true });
-      } else {
+      }
+      else {
         navigate("/", { replace: true }); // Default to home
       }
     } catch (err) {
