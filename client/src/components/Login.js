@@ -1,3 +1,10 @@
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import StarsBackground from "./StarsBackground";
+import Header from "./Header";
+import { AuthForm } from "./AuthForm";
+
 const Login = ({ showHeader = false }) => {
   const { login, setLoginSource } = useAuth();
   const navigate = useNavigate();
