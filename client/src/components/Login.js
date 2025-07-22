@@ -13,7 +13,6 @@ const Login = ({ showHeader = false }) => {
   const handleLogin = async (credentials) => {
     try {
       await login(credentials);
-      // Always redirect to home after login
       navigate("/", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");

@@ -62,7 +62,6 @@ const CalendarView = ({ birthdays }) => {
         className="custom-calendar"
       />
 
-      {/* Birthday Popup */}
       {selectedDate && (
         <div
           className="birthday-popup"

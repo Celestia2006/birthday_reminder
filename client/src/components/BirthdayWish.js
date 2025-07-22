@@ -42,9 +42,7 @@ const BirthdayWish = ({ birthdays }) => {
 
          const data = response.data.data;
          
-
-         // Handle both birth_date and date for backward compatibility
-         const dateValue = data.birth_date || data.date; // Check both fields
+         const dateValue = data.birth_date || data.date;
          if (!dateValue) {
            throw new Error("No date field found in response");
          }
@@ -61,7 +59,7 @@ const BirthdayWish = ({ birthdays }) => {
 
          setBirthday({
            ...data,
-           date: parsedDate.toISOString(), // Standardize to ISO format
+           date: parsedDate.toISOString(), 
          });
        } catch (err) {
          console.error("Fetch error:", err);

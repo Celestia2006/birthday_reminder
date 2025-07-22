@@ -30,7 +30,6 @@ class WhatsAppService {
 
   async sendBirthdayMessage(contactNumber, message) {
     try {
-      // Format number with country code (remove '+' if present)
       const formattedNumber = contactNumber.replace(/^\+/, '') + '@c.us';
       await this.client.sendMessage(formattedNumber, message);
       console.log('Birthday message sent successfully!');
@@ -40,7 +39,6 @@ class WhatsAppService {
   }
 
   scheduleBirthdayMessage(contactNumber, message, date) {
-    // Set time to 00:00 on the birthday date
     const scheduledTime = new Date(date);
     scheduledTime.setHours(0, 0, 0, 0);
 

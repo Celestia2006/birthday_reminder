@@ -11,7 +11,6 @@ const Signup = () => {
   const handleSignup = async (userData) => {
     try {
       await register(userData);
-      // No need for additional login here - register already handles it
     } catch (err) {
       setError(err.message || "Registration failed");
     }

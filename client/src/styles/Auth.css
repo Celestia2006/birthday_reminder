@@ -1,16 +1,13 @@
-
-/* Auth Container */
 .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-grow: 1; /* Takes remaining space */
-  margin-top: 0px;/* Reduce top padding since header is separate */
-  min-height: calc(100vh - 80px); /* Adjust based on header height */
-  padding: 10px 20px 20px; /* Reduced top padding */
+  flex-grow: 1; 
+  margin-top: 0px;
+  min-height: calc(100vh - 80px); 
+  padding: 10px 20px 20px;
 }
 
-/* Auth Panel */
 .auth-panel {
   background-color: rgba(195, 76, 140, 0.3);
   border: 4px solid #1a1a2e;
@@ -25,14 +22,13 @@
 
 .signin-panel {
   padding: 25px;
-  min-height: 400px; /* Fixed height for sign in */
+  min-height: 400px; 
   margin-top: -125px;
 }
 
-/* Sign Up Specific Styles */
 .signup-panel {
   padding: 25px;
-  min-height: 500px; /* Slightly taller for extra fields */
+  min-height: 500px; 
 }
 
 .auth-panel h2 {
@@ -43,14 +39,12 @@
   margin-top: 15px;
 }
 
-/* Error Message */
 .auth-error {
   color: #ff6857;
   margin-bottom: 20px;
   font-size: 1.2rem;
 }
 
-/* Submit Button */
 .auth-submit {
   width: 50%;
   margin-top: 20px;
@@ -58,7 +52,6 @@
   padding: 12px;
 }
 
-/* Switch Link */
 .auth-switch {
   margin-top: 25px;
   color: #fef4b5;
@@ -75,7 +68,6 @@
   text-decoration: underline;
 }
 
-/* Form Elements */
 .form-group {
   margin-bottom: 20px;
   text-align: left;

@@ -13,22 +13,18 @@ const WelcomePage = ({ onGiftOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if this is a wish link
   const isWishLink = location.pathname.startsWith("/wish/");
   const wishId = isWishLink ? location.pathname.split("/")[2] : null;
 
   const handleGiftOpen = () => {
-    // Clear any existing authentication
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
 
     if (isWishLink) {
-      // For wish links, navigate to the wish page after animation
       setTimeout(() => {
         navigate(`/wish/${wishId}`);
       }, 1000);
     } else {
-      // For regular app entry, use the provided onGiftOpen
       onGiftOpen();
     }
   };
@@ -66,7 +62,6 @@ const WelcomePage = ({ onGiftOpen }) => {
       });
       setShowConfetti(true);
 
-      // Trigger the gift open handler
       handleGiftOpen();
     }
   };
@@ -139,7 +134,6 @@ const WelcomePage = ({ onGiftOpen }) => {
             style={{ position: "fixed" }}
           />
 
-          {/* Explosion confetti */}
           {explosionPieces.map((piece) => (
             <ConfettiPiece
               key={piece.id}

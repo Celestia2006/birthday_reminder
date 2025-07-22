@@ -118,14 +118,12 @@ h3 {
   color: white;
 }
 
-/* Content Styles */
 .panel-content {
   font-size: 25px;
   line-height: 1.5;
   color: white;
 }
 
-/* Form Styles */
 .birthday-form {
   padding-top: 20px;
   margin-top: 10px;
@@ -309,7 +307,6 @@ h3 {
   box-shadow: none;
 }
 
-/* Specific button adjustments */
 .back-button {
   margin-bottom: 20px;
   display: flex;
@@ -430,7 +427,6 @@ h3 {
   background-color: #fcf55f;
 }
 
-/* Logout Button Styles */
 .navbar-logout {
   margin-left: auto;
 }
@@ -447,13 +443,13 @@ h3 {
   background: #c81610;
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(2px);
-  cursor: pointer; /* Add cursor pointer */
-  border: none; /* Remove default button border */
+  cursor: pointer; 
+  border: none;
   margin-right: -100px;
 }
 
 .logout-button:hover {
-  background-color: #b30903; /* Darker red on hover */
+  background-color: #b30903; 
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -503,7 +499,6 @@ h3 {
   color: #000435;
 }
 
-/* Birthday List */
 .birthday-list ul {
   list-style: none;
   padding: 0;

@@ -102,7 +102,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
   };
 
   useEffect(() => {
-    // Check for updated data in navigation state first
     if (location.state?.updatedBirthday) {
       const updated = location.state.updatedBirthday;
       setFormData({
@@ -123,7 +122,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
         setPreviewImage(updated.photo);
       }
     } else {
-      // Fall back to birthdays list
       const birthdayToEdit = birthdays.find((b) => b.id === parseInt(id));
       if (birthdayToEdit) {
         setFormData({
@@ -168,17 +166,16 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
 
       const updatedBirthday = await updateBirthday(parseInt(id), updatedData);
 
-      console.log("[Edit] Data after update:", updatedBirthday); // Log 2
+      console.log("[Edit] Data after update:", updatedBirthday); 
 
       if (!updatedBirthday) {
         throw new Error("No data returned from update");
       }
 
-      // Force refresh by navigating with state and then refreshing the list
       navigate(`/birthday/${id}`, {
         state: {
           updatedBirthday,
-          timestamp: Date.now(), // Ensure fresh data
+          timestamp: Date.now(), 
         },
       });
     } catch (error) {
@@ -195,7 +192,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
         <h2>Edit Birthday</h2>
         {error && <div className="error-message">{error}</div>}
         <form className="birthday-form" onSubmit={handleSubmit}>
-          {/* Row 1: Name and Nickname */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="name">Full Name*</label>
@@ -220,7 +216,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             </div>
           </div>
 
-          {/* Row 2: Birth Date and Phone Number */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="date">Birth Date*</label>
@@ -247,7 +242,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             </div>
           </div>
 
-          {/* Row 3: Relationship and Zodiac */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="relationship">Relationship</label>
@@ -282,7 +276,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             </div>
           </div>
 
-          {/* Photo Upload */}
           <div className="form-group">
             <label>Photo</label>
             <div className="image-upload-container">
@@ -307,7 +300,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             </div>
           </div>
 
-          {/* Personalized Message */}
           <div className="form-group">
             <label htmlFor="personalizedMessage">Personalized Message</label>
             <textarea
@@ -320,7 +312,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             ></textarea>
           </div>
 
-          {/* Row 4: Favorite Color and Gift Ideas */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="favoriteColor">Favorite Color</label>
@@ -345,7 +336,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             </div>
           </div>
 
-          {/* Hobbies */}
           <div className="form-group">
             <label htmlFor="hobbies">Hobbies/Interests</label>
             <textarea
@@ -357,7 +347,6 @@ const EditBirthday = ({ birthdays, updateBirthday }) => {
             ></textarea>
           </div>
 
-          {/* Notes */}
           <div className="form-group">
             <label htmlFor="notes">Special Notes</label>
             <textarea

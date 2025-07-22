@@ -205,7 +205,6 @@ function App() {
 
       console.log("[App] Add birthday response:", response.data);
 
-      // Transform the server response to match frontend format
       const addedBirthday = {
         id: response.data.data.id,
         name: response.data.data.name,
@@ -224,10 +223,9 @@ function App() {
         phone_number: response.data.data.phone_number,
       };
 
-      // Update the birthdays state
       setBirthdays((prev) => [...prev, addedBirthday]);
 
-      // Navigate to the birthday list
+
       navigate("/all-birthdays");
     } catch (error) {
       let errorMessage = "Failed to save birthday";
@@ -266,7 +264,6 @@ function App() {
 
       const serverData = response.data.data;
 
-      // Keep your existing return structure
       const transformedData = {
         id: serverData.id,
         name: serverData.name,
@@ -289,7 +286,7 @@ function App() {
 
       return transformedData;
     } catch (error) {
-      console.error("[App] Update error:", error); // Log 14
+      console.error("[App] Update error:", error); 
       throw error;
     }
   };
@@ -439,7 +436,6 @@ function App() {
           element={
             <StatePreserver>
               <Login showHeader={true} />{" "}
-              {/* Remove the location reference here */}
             </StatePreserver>
           }
         />

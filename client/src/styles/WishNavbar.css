@@ -21,7 +21,6 @@
   font-family: "Jersey", "Arial Narrow", sans-serif;
   font-size: 2rem;
   text-align: center;
-  flex-grow: 1; /* Take up available space */
 }
 
 .signin-button {
@@ -56,7 +55,7 @@
   
   .wish-navbar-title {
     font-size: 1.5rem;
-    padding-left: 40px; /* Make space for button */
+    padding-left: 40px; 
   }
   
   .signin-button {

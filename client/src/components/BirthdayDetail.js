@@ -37,34 +37,34 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log("[Detail] Initial props:", { birthdays, id }); // Log 3
-  console.log("[Detail] Location state:", location.state); // Log 4
+  console.log("[Detail] Initial props:", { birthdays, id }); 
+  console.log("[Detail] Location state:", location.state); 
 
   const [birthday, setBirthday] = useState(() => {
     const fromState = location.state?.updatedBirthday;
     const fromProps = birthdays.find((b) => b.id === parseInt(id));
 
-    console.log("[Detail] Initial state - from state:", fromState); // Log 5
-    console.log("[Detail] Initial state - from props:", fromProps); // Log 6
+    console.log("[Detail] Initial state - from state:", fromState); 
+    console.log("[Detail] Initial state - from props:", fromProps); 
 
     return fromState || fromProps || null;
   });
 
 
   useEffect(() => {
-    console.log("[Detail] Effect running"); // Log 7
+    console.log("[Detail] Effect running"); 
 
     const fromState = location.state?.updatedBirthday;
     const fromProps = birthdays.find((b) => b.id === parseInt(id));
 
     if (fromState) {
-      console.log("[Detail] Using state data"); // Log 8
+      console.log("[Detail] Using state data"); 
       setBirthday(fromState);
     } else if (fromProps) {
-      console.log("[Detail] Using props data"); // Log 9
+      console.log("[Detail] Using props data"); 
       setBirthday(fromProps);
     } else {
-      console.log("[Detail] No data found"); // Log 10
+      console.log("[Detail] No data found"); 
       setBirthday(null);
     }
   }, [birthdays, id, location.state]);
@@ -89,19 +89,14 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
       return;
     }
 
-    // Clean the phone number - remove all non-digit characters
     const cleanedNumber = birthday.phone_number.toString().replace(/\D/g, "");
 
-    // Format for WhatsApp - add international prefix if not present
     let whatsappNumber;
     if (cleanedNumber.startsWith("91") && cleanedNumber.length === 12) {
-      // Already has India country code
       whatsappNumber = cleanedNumber;
     } else if (cleanedNumber.length === 10) {
-      // Assume it's an Indian number without country code
       whatsappNumber = `91${cleanedNumber}`;
     } else {
-      // Use as-is for international numbers
       whatsappNumber = cleanedNumber;
     }
 
@@ -163,13 +158,11 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
   return (
     <div className="birthday-detail-container">
       <div className="birthday-detail-card">
-        {/* Name and Nickname at the very top */}
         <div className="detail-header">
           <h2>{birthday.name}</h2>
           {birthday.nickname && <p className="nickname">{birthday.nickname}</p>}
         </div>
 
-        {/* Oval Image centered below the header */}
         <div className="detail-image-wrapper">
           <img
             src={birthday.photo}
@@ -182,7 +175,6 @@ const BirthdayDetail = ({ birthdays, onDelete }) => {
           />
         </div>
 
-        {/* All details in a single vertical column */}
         <div className="detail-content">
           <div className="detail-section">
             <h3>🎉 Birthday</h3>

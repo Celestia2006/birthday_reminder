@@ -26,7 +26,6 @@ body {
   background-attachment: fixed;
 }
 
-/* Panel container */
 .add-birthday-container {
   display: flex;
   justify-content: center;
@@ -63,7 +62,6 @@ body {
   border-bottom: 2px solid rgba(254, 244, 181, 0.3); 
 }
 
-/* Form styles */
 .birthday-form {
   display: flex;
   flex-direction: column;

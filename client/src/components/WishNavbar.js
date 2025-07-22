@@ -14,9 +14,9 @@ const WishNavbar = () => {
     logout();
     navigate("/login", {
       state: {
-        fromWish: true, // Indicates coming from wish page
-        redirectToHome: true, // New flag to redirect to home after login
-        wishId: id, // Keep the wishId for reference if needed
+        fromWish: true, 
+        redirectToHome: true, 
+        wishId: id, 
       },
     });
   };

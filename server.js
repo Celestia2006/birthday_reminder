@@ -5,11 +5,11 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-// Initialize express app
+
 const app = express();
 app.use(express.static(path.join(__dirname, "../client/build")));
 
-// Configure file storage
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../client/public/images/upload");
@@ -17,22 +17,20 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Temporary name - will be renamed after getting the ID
     cb(null, file.originalname);
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  limits: { fileSize: 2 * 1024 * 1024 }, 
 });
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Database connection pool
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
@@ -42,7 +40,6 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-// Verify database connection
 async function testConnection() {
   try {
     const connection = await pool.getConnection();
@@ -56,11 +53,11 @@ async function testConnection() {
 testConnection();
 
 const checkLoggedIn = (req, res, next) => {
-  console.log("Incoming request headers:", req.headers); // Debug log
+  console.log("Incoming request headers:", req.headers); 
   const userId = req.headers["user-id"];
 
   if (!userId) {
-    console.log("No user-id header found"); // Debug log
+    console.log("No user-id header found"); 
     return res.status(401).json({
       success: false,
       error: "Not logged in",
@@ -71,7 +68,6 @@ const checkLoggedIn = (req, res, next) => {
   next();
 };
 
-// Auth Endpoints
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -146,7 +142,6 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-// Protected API endpoints
 app.get("/api/birthdays", checkLoggedIn, async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -168,11 +163,10 @@ app.post(
   checkLoggedIn,
   upload.single("photo"),
   async (req, res) => {
-    console.log("File upload received:", req.file); // Debug log
-    console.log("Request body:", req.body); // Debug log
+    console.log("File upload received:", req.file); 
+    console.log("Request body:", req.body); 
 
     try {
-      // Validate required fields
       if (!req.body.name || !req.body.birth_date) {
         if (req.file) {
           console.log("Deleting invalid file:", req.file.path);
@@ -185,7 +179,6 @@ app.post(
         });
       }
 
-      // Validate date format
       if (!/^\d{4}-\d{2}-\d{2}$/.test(req.body.birth_date)) {
         if (req.file) {
           console.log(
@@ -205,9 +198,8 @@ app.post(
       await connection.beginTransaction();
 
       try {
-        console.log("Starting database transaction"); // Debug log
+        console.log("Starting database transaction");
 
-        // First insert without photo_url to get the ID
         const [result] = await connection.query("INSERT INTO birthdays SET ?", [
           {
             name: req.body.name.substring(0, 100),
@@ -225,11 +217,11 @@ app.post(
         ]);
 
         const newId = result.insertId;
-        console.log("New record created with ID:", newId); // Debug log
+        console.log("New record created with ID:", newId); 
 
         let photoUrl = null;
         if (req.file) {
-          console.log("Processing file upload for ID:", newId); // Debug log
+          console.log("Processing file upload for ID:", newId); 
 
           const fileExt = path.extname(req.file.originalname).toLowerCase();
           const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
@@ -248,37 +240,35 @@ app.post(
           );
           const newPath = path.join(uploadDir, newFilename);
 
-          // Ensure upload directory exists
           if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
           }
 
-          console.log(`Renaming ${oldPath} to ${newPath}`); // Debug log
+          console.log(`Renaming ${oldPath} to ${newPath}`); 
           fs.renameSync(oldPath, newPath);
           photoUrl = `/images/upload/${newFilename}`;
 
-          console.log("Updating record with photo URL:", photoUrl); // Debug log
+          console.log("Updating record with photo URL:", photoUrl); 
           await connection.query(
             "UPDATE birthdays SET photo_url = ? WHERE id = ?",
             [photoUrl, newId]
           );
         }
 
-        // Get complete record
         const [rows] = await connection.query(
           "SELECT * FROM birthdays WHERE id = ?",
           [newId]
         );
 
         await connection.commit();
-        console.log("Transaction committed successfully"); // Debug log
+        console.log("Transaction committed successfully"); 
 
         res.status(201).json({
           success: true,
           data: rows[0],
         });
       } catch (err) {
-        console.error("Transaction error:", err); // Debug log
+        console.error("Transaction error:", err); 
         await connection.rollback();
         if (req.file) {
           console.log("Rollback - deleting file:", req.file.path);
@@ -289,7 +279,7 @@ app.post(
         connection.release();
       }
     } catch (err) {
-      console.error("Server error:", err); // Debug log
+      console.error("Server error:", err); 
       res.status(500).json({
         success: false,
         error: "Server error",
@@ -327,7 +317,6 @@ app.put(
 
         let photoUrl = existing[0].photo_url;
         if (req.file) {
-          // Delete old photo if exists
           if (photoUrl) {
             const oldPath = path.join(__dirname, "../client/public", photoUrl);
             if (fs.existsSync(oldPath)) {
@@ -335,7 +324,6 @@ app.put(
             }
           }
 
-          // Process new photo
           const fileExt = path.extname(req.file.originalname).toLowerCase();
           const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
@@ -469,7 +457,6 @@ app.get("/api/user", checkLoggedIn, async (req, res) => {
   }
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

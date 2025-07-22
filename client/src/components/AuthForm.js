@@ -14,7 +14,6 @@ export const AuthForm = ({ type, onSubmit, error }) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
 
-  // Determine panel class based on form type
   const panelClass =
     type === "login" ? "auth-panel signin-panel" : "auth-panel signup-panel";
 

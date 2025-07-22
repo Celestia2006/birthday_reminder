@@ -32,7 +32,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Refs for form inputs
   const nameInput = useRef();
   const dateInput = useRef();
   const nicknameInput = useRef();
@@ -50,7 +49,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
       setError("Image must be smaller than 2MB");
       return;
@@ -66,7 +64,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        // Calculate new dimensions
         let width = img.width;
         let height = img.height;
 
@@ -95,7 +92,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     console.log("Type of phone number:", typeof phoneNumberInput.current.value);
 
 
-    // Basic validation
     if (
       !nameInput.current.value ||
       !dateInput.current.value ||
@@ -106,10 +102,8 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
       return;
     }
 
-    // Create FormData
     const formData = new FormData();
 
-    // Append all fields individually
     formData.append("name", nameInput.current.value);
     formData.append("birth_date", dateInput.current.value);
     formData.append("phone_number", phoneNumberInput.current.value);
@@ -125,7 +119,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
     formData.append("gift_ideas", giftsInput.current?.value || "");
     formData.append("notes", notesInput.current?.value || "");
 
-    // Append file last
     if (fileInput.current?.files[0]) {
       formData.append("photo", fileInput.current.files[0]);
     }
@@ -143,7 +136,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
         <h2>Add New Birthday</h2>
         {error && <div className="error-message">{error}</div>}
         <form className="birthday-form" onSubmit={handleSubmit}>
-          {/* Row 1: Name and Nickname */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="name">Full Name*</label>
@@ -179,7 +171,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             </div>
           </div>
 
-          {/* Row 2: Birth Date and Relationship */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="date">Birth Date*</label>
@@ -207,7 +198,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             </div>
           </div>
 
-          {/* Row 3: Zodiac and Photo */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="zodiac">Zodiac Sign</label>
@@ -246,7 +236,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             </div>
           </div>
 
-          {/* Personalized Message */}
           <div className="form-group">
             <label htmlFor="personalizedMessage">Personalized Message</label>
             <textarea
@@ -258,7 +247,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             ></textarea>
           </div>
 
-          {/* Row 4: Favorite Color and Gift Ideas */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="favoriteColor">Favorite Color</label>
@@ -281,7 +269,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             </div>
           </div>
 
-          {/* Hobbies */}
           <div className="form-group">
             <label htmlFor="hobbies">Hobbies/Interests</label>
             <textarea
@@ -292,7 +279,6 @@ const AddBirthday = ({ addBirthday, onSuccess }) => {
             ></textarea>
           </div>
 
-          {/* Notes */}
           <div className="form-group">
             <label htmlFor="notes">Special Notes</label>
             <textarea
